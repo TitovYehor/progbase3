@@ -3,6 +3,9 @@ using Microsoft.Data.Sqlite;
 using System.Security.Cryptography;
 using System.Text;
 using System.IO;
+using System.Globalization;
+using System.Collections.Generic;
+using System.Diagnostics;
 using static System.Console;
 
 namespace ConsoleApp
@@ -76,7 +79,7 @@ namespace ConsoleApp
                         }
                         else if (command[0] == "generate")
                         {
-                            ProcessGenerate(command, userRep, postRep, commentRep);
+                            ProcessGenerate(command, userRep, postRep, commentRep, service);
                         }
                         else
                         {
@@ -165,7 +168,7 @@ namespace ConsoleApp
             }
         }
 
-        static void ProcessGenerate(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep)
+        static void ProcessGenerate(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep, Service service)
         {
             if (command.Length != 4)
             {
@@ -177,15 +180,29 @@ namespace ConsoleApp
 
             ValidateGenerateCategory(generateCategory);
 
+            ValidateGeneratedCount(command[2]);
+
             if (generateCategory == "users")
             {
                 GenerateUsers(command, userRep);
+            }
+            else if (generateCategory == "posts")
+            {
+                ValidateUsers(userRep);
+
+                GeneratePosts(command, postRep, service);
+            }
+            else if (generateCategory == "comments")
+            {
+                ValidateUsers(userRep);
+
+                GenerateComments(command, commentRep, service);
             }
         }
 
         private static void ValidateGenerateCategory(string category)
         {
-            string[] supportedGenerateCategories = new string[]{"users, posts, comments"};
+            string[] supportedGenerateCategories = new string[]{"users", "posts", "comments"};
 
             for (int i = 0; i < supportedGenerateCategories.Length; i++)
             {
@@ -198,63 +215,6 @@ namespace ConsoleApp
             throw new ArgumentException($"Unsupported generating category '{category}' ('help' - to see supported categories)");
         }
 
-        // generate users {count} {timeIntervals (in ISO8601 format with separator 'To': XXXX-XX-XXToXXXX-XX-XX)}
-        private static void GenerateUsers(string[] command, UserRepository userRep)
-        {
-            ValidateGeneratedCount(command[2]);
-
-            int generatedCount = int.Parse(command[2]);
-
-            string[] datesInterval = ParseDateIntervals(command[3]);
-
-            string[] fullnames = new string[500];
-
-            StreamReader sr = new StreamReader("../data/generator/fullnames.txt");
-
-            for (int i = 0; i < 500; i++)
-            {
-                string row = sr.ReadLine();
-
-                fullnames[i] = row;
-            }
-
-            ///////////////////////////////////////
-
-            Random random = new Random();
-        
-            for (int i = 0; i < generatedCount; i++)
-            {
-                User newUser = new User();
-
-                string generatedUsername = GenerateRandomUsername();
-
-                if (userRep.UserExists(generatedUsername))
-                {
-                    i--;
-                }
-
-                newUser.username = generatedUsername;
-
-                string password = 
-
-                newUser.password = 
-            }
-        }
-
-        private static string GenerateRandomUsername()
-        {
-            Random random = new Random();
-
-            string username = "";
-
-            for (int i = 0; i < 33; i++)
-            {
-                username += (char)random.Next(0, 257);
-            }
-
-            return username;
-        }
-
         private static void ValidateGeneratedCount(string enteredCount)
         {
             int generatedCount;
@@ -265,29 +225,292 @@ namespace ConsoleApp
             }
         }
 
-        private static string[] ParseDateIntervals(string dateIntervals)
+        private static void ValidateUsers(UserRepository userRep)
+        {
+            User[] users = userRep.GetAllUsers();
+
+            if (users.Length == 0)
+            {
+                throw new ArgumentException("Users not exists, so it's impossible to create posts or comments");
+            }
+        }
+    
+
+        // generate {category} {count} {timeIntervals (in format (XX(month)/XX(day)/XXXX(year)) with separator 'To': XX/XX/XXXXToXX/XX/XXXX)}
+        private static void GenerateUsers(string[] command, UserRepository userRep)
+        {
+            int generatedCount = int.Parse(command[2]);
+
+            DateTime[] datesInterval = ParseDateIntervals(command[3]);
+
+            string filePath = "../data/generator/fullnames.txt";
+
+            string[] fullnames = GetFullnamesFromFile(filePath);
+
+            ///////////////////////////////////////
+
+            Stopwatch sw2 = new Stopwatch();
+        
+            for (int i = 0; i < generatedCount; i++)
+            {
+                User newUser = new User();
+
+                string generatedUsername = GenerateRandomUsername();
+
+                if (userRep.UserExists(generatedUsername))
+                {
+                    WriteLine("conc");
+                    i--;
+                    continue;
+                }
+
+                newUser.username = generatedUsername;
+
+                string password = GenerateRandomPassword(newUser.username);
+                SHA256 sha256Hash = SHA256.Create();
+
+                newUser.password = GetHash(sha256Hash, password);
+
+                sha256Hash.Dispose();
+
+                newUser.fullname = GenerateRandomFullname(fullnames);
+
+                DateTime createdAt = GenerateRandomDate(datesInterval);
+
+                newUser.createdAt = createdAt;
+
+                userRep.Insert(newUser);
+            }
+        }
+
+        private static string[] GetFullnamesFromFile(string filePath)
+        {
+            List<string> namesList = new List<string>();
+
+            StreamReader sr = new StreamReader(filePath);
+
+            for (int i = 0; i < 500; i++)
+            {
+                string row = sr.ReadLine();
+
+                namesList.Add(row);
+            }
+
+            sr.Close();
+
+            string[] fullnames = new string[namesList.Count];
+
+            namesList.CopyTo(fullnames);
+
+            return fullnames;
+        }
+
+        private static string GenerateRandomUsername()
+        {
+            Random random = new Random();
+
+            string username = "";
+
+            for (int i = 0; i < 11; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    username += (char)random.Next(48, 58);
+                }   
+                else if (i % 3 == 0)
+                {
+                    username += (char)random.Next(65, 91);
+                }
+                else
+                {
+                    username += (char)random.Next(97, 123);
+                }
+            }
+
+            return username;
+        }
+
+        private static string GenerateRandomPassword(string username)
+        {
+            Random random = new Random();
+
+            string password = $"{username}pass";
+
+            return password;
+        }
+
+        private static string GenerateRandomFullname(string[] fullnames)
+        {
+            Random random = new Random();
+
+            string fullname = fullnames[random.Next(0, fullnames.Length)];
+
+            return fullname;
+        }
+
+        private static DateTime GenerateRandomDate(DateTime[] datesInterval)
+        {
+            DateTime leftLimDate = datesInterval[0];
+            DateTime rightLimDate = datesInterval[1];
+
+            Random random = new Random();
+
+            int daysDiff = (rightLimDate - leftLimDate).Days;
+
+            DateTime generatedDateTime = leftLimDate.AddDays(random.Next(0, daysDiff + 1)).AddHours(random.Next(0, 24)).AddMinutes(random.Next(0, 60)).AddSeconds(random.Next(0, 60)).AddMilliseconds(random.Next(0, 1000));
+
+            return generatedDateTime;
+        }
+
+        private static DateTime[] ParseDateIntervals(string dateIntervals)
         {
             string[] splittedDates = dateIntervals.Split("To");
 
             DateTime leftLimDate;
             DateTime rightLimDate;
 
-            bool leftDateParsed = DateTime.TryParse(splittedDates[0], out leftLimDate);
-            bool rightLimParsed = DateTime.TryParse(splittedDates[1], out rightLimDate);
+            bool leftDateParsed = DateTime.TryParseExact(splittedDates[0], "d", CultureInfo.InvariantCulture, DateTimeStyles.None, out leftLimDate);
+            bool rightLimParsed = DateTime.TryParseExact(splittedDates[1], "d", CultureInfo.InvariantCulture, DateTimeStyles.None, out rightLimDate);
 
             if (!leftDateParsed || !rightLimParsed)
             {
                 throw new ArgumentException("Incorrect date format ('help' to help)");
             }
 
-            int daysInterval = (leftLimDate - rightLimDate).Days;
+            int daysInterval = (rightLimDate - leftLimDate).Days;
 
             if (daysInterval <= 0)
             {
                 throw new ArgumentException("Incorrect dates interval ('help' to help)");
             }
 
-            return splittedDates;
+            DateTime[] parsedDates = new DateTime[]{leftLimDate, rightLimDate};
+
+            return parsedDates;
+        }
+
+
+        private static void GeneratePosts(string[] command, PostRepository postRep, Service service)
+        {
+            int generatedCount = int.Parse(command[2]);
+
+            DateTime[] datesInterval = ParseDateIntervals(command[3]);
+
+            string filePath = "../data/generator/posts.txt";
+
+            string[] posts = GetRowsDataFromFile(filePath);
+
+            int[] usersIds = service.GetAllUsersId();
+
+            ///////////////////////////////////////
+        
+            for (int i = 0; i < generatedCount; i++)
+            {
+                Post newPost = new Post();
+
+                string generatedPostContent = GeneratePostContent(posts);
+
+                newPost.content = generatedPostContent;
+
+                DateTime createdAt = GenerateRandomDate(datesInterval);
+
+                newPost.createdAt = createdAt;
+
+                int userId = GetRandomUserId(usersIds);
+
+                newPost.userId = userId;
+
+                postRep.Insert(newPost);
+            }
+        }
+
+        private static string[] GetRowsDataFromFile(string filePath)
+        {
+            List<string> rowsList = new List<string>();
+
+            StreamReader sr = new StreamReader(filePath);
+
+            for (int i = 0; i < 30; i++)
+            {
+                string row = sr.ReadLine();
+
+                rowsList.Add(row);
+            }
+
+            sr.Close();
+            
+            string[] rows = new string[rowsList.Count];
+
+            rowsList.CopyTo(rows);
+
+            return rows;
+        }
+
+        private static string GeneratePostContent(string[] posts)
+        {
+            Random random = new Random();
+
+            string post = posts[random.Next(0, posts.Length)];
+
+            return post;
+        }
+
+        private static int GetRandomUserId(int[] usersIds)
+        {
+            Random random = new Random();
+
+            int id = usersIds[random.Next(0, usersIds.Length)];
+
+            return id;
+        }
+
+
+        private static void GenerateComments(string[] command, CommentRepository commentRep, Service service)
+        {
+            int generatedCount = int.Parse(command[2]);
+
+            DateTime[] datesInterval = ParseDateIntervals(command[3]);
+
+            string filePath = "../data/generator/comments.txt";
+
+            string[] comments = GetRowsDataFromFile(filePath);
+
+            int[] usersIds = service.GetAllUsersId();
+
+            int[] postsIds = service.GetAllUsersId();
+
+            ///////////////////////////////////////
+        
+            for (int i = 0; i < generatedCount; i++)
+            {
+                Comment newComment = new Comment();
+
+                string generatedCommentContent = GeneratePostContent(comments);
+
+                newComment.content = generatedCommentContent;
+
+                DateTime createdAt = GenerateRandomDate(datesInterval);
+
+                newComment.createdAt = createdAt;
+
+                int userId = GetRandomUserId(usersIds);
+
+                int postId = GetRandomPostId(postsIds);
+
+                newComment.userId = userId;
+                newComment.postId = postId;
+
+                commentRep.Insert(newComment);
+            }
+        }
+
+        private static int GetRandomPostId(int[] postsIds)
+        {
+            Random random = new Random();
+
+            int id = postsIds[random.Next(0, postsIds.Length)];
+
+            return id;
         }
 
 

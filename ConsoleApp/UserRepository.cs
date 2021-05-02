@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
 
 namespace ConsoleApp
 {
@@ -34,6 +35,24 @@ namespace ConsoleApp
             connection.Close();
 
             return isExists;
+        }
+
+        public User[] GetAllUsers()
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM users";
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            User[] users = ReadUsers(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return users;
         }
 
         public int Insert(User user) 
@@ -138,6 +157,24 @@ namespace ConsoleApp
         }
 
 
+
+        private static User[] ReadUsers(SqliteDataReader reader)
+        {
+            List<User> usersList = new List<User>();
+
+            while (reader.Read())
+            {
+                User user = ReadUser(reader);
+
+                usersList.Add(user);
+            }
+        
+            User[] users = new User[usersList.Count];
+
+            usersList.CopyTo(users);
+
+            return users;
+        }
 
         private static User ReadUser(SqliteDataReader reader)
         {

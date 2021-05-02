@@ -15,6 +15,24 @@ namespace ConsoleApp
 
 
 
+        public Post[] GetAllPosts()
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM posts";
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            Post[] posts = ReadPosts(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return posts;
+        }
+
         public int Insert(Post post) 
         {
             connection.Open();
