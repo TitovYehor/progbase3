@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
 
@@ -126,29 +127,51 @@ namespace ProcessData
         
 
 
-        public Post[] GetFiltredPosts(string text)
+        public Post[] GetFiltredByTextPosts(string text)
         {
             connection.Open();
 
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * 
-                                    FROM users, posts, comments
-                                    WHERE users.id = posts.user_id AND users.id = comments.user_id 
-                                    AND posts.id = comments.post_id AND posts.content LIKE '%' || $valueX || '%'";
+            command.CommandText = @"SELECT * FROM posts, comments 
+                                    WHERE posts.id = comments.post_id 
+                                    AND posts.content LIKE '%' || $valueX || '%'";
             command.Parameters.AddWithValue("$valueX", text);
 
             SqliteDataReader reader = command.ExecuteReader();
 
-          //  Post[] posts = ReadCrossJoin(reader);
+            Post[] posts = ReadPostsFromCrossJoin(reader);
 
             reader.Close();
 
             connection.Close();
 
-            return null;
+            return posts;
         }
 
+        public Post[] GetFiltredByTimePosts(DateTime[] dateIntervals)
+        {
+            connection.Open();
 
+            DateTime dateLeft = dateIntervals[0];
+            DateTime dateRight = dateIntervals[1];
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM users, posts, comments 
+                                    WHERE users.id = posts.user_id AND posts.id = comments.post_id 
+                                    AND posts.createdAt > $leftDateLim AND posts.createdAt < rightDateLim";
+            command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
+            command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            Post[] posts = ReadPostsFromCrossJoin(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return posts;
+        }
 
         private static Post[] ReadPosts(SqliteDataReader reader)
         {
@@ -180,9 +203,61 @@ namespace ProcessData
             return post;
         }
     
-        //private static Post[] ReadCrossJoin(SqliteDataReader reader)
-        // {
 
-        // }
+
+        public static Post[] ReadPostsFromCrossJoin(SqliteDataReader reader)
+        {
+            List<Post> postsList = new List<Post>();
+
+            while (reader.Read())
+            {
+                Comment comment = ReadCommentFromCrossJoin(reader);
+
+                Post post = ReadPost(reader);
+
+                int index = postsList.FindIndex(post.ComparePostsIds);
+
+                if (index == -1)
+                {
+                    AddElementToMass<Comment>(ref post.comments, comment);
+
+                    postsList.Add(post);
+                }
+                else
+                {
+                    AddElementToMass<Comment>(ref postsList[index].comments, comment);
+                }
+            }
+
+            Post[] posts = new Post[postsList.Count];
+
+            postsList.CopyTo(posts);
+
+            return posts;
+        }
+
+        private static Comment ReadCommentFromCrossJoin(SqliteDataReader reader)
+        {
+            int id = reader.GetInt32(4);
+            string content = reader.GetString(5);
+            DateTime createdAt = reader.GetDateTime(6);
+            int userId = reader.GetInt32(7);
+            int postId = reader.GetInt32(8);
+
+            Comment comment = new Comment(id, content, createdAt, userId, postId);
+
+            return comment;
+        }
+    
+        private static void AddElementToMass<T>(ref T[] mass, T element)
+        {
+            List<T> listOfMass = mass.ToList<T>();
+
+            listOfMass.Add(element);
+
+            mass = new T[listOfMass.Count];
+
+            listOfMass.CopyTo(mass);
+        }
     }
 }
