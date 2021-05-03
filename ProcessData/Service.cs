@@ -1,4 +1,4 @@
-namespace ConsoleApp
+namespace ProcessData
 {
     public class Service
     {
@@ -15,7 +15,24 @@ namespace ConsoleApp
             this.postRepository = postRepository;
 
             this.commentRepository = commentRepository;
-        }        
+        }    
+
+        public User GetAllUserData(int userId, User user)
+        {
+            user.posts = postRepository.GetByUserId(userId);
+
+            user.comments = commentRepository.GetByUserId(userId);
+
+            return user;
+        }
+
+        public Post GetAllPostData(int postId, Post post)
+        {
+            post.comments = commentRepository.GetByPostId(postId);
+
+            return post;
+        }    
+
 
         public int[] GetAllUsersId()
         {

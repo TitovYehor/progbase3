@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ConsoleApp
+namespace ProcessData
 {
     public class Post
     {
@@ -11,7 +11,7 @@ namespace ConsoleApp
 
         public DateTime createdAt;
 
-        public List<Comment> comments;  
+        public Comment[] comments;  
 
         public int userId;    
 
@@ -29,6 +29,11 @@ namespace ConsoleApp
             this.content = content;
             this.createdAt = createdAt;
             this.userId = userId;
+        }
+
+        public override string ToString()
+        {
+            return $"{id}) |{content}| [{createdAt.ToString()}]";
         }
     }
 }

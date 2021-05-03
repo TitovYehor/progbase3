@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ConsoleApp
+namespace ProcessData
 {
     public class User
     {
@@ -15,9 +15,9 @@ namespace ConsoleApp
 
         public DateTime createdAt;
 
-        public List<Post> posts;
+        public Post[] posts;
 
-        public List<Comment> comments;
+        public Comment[] comments;
 
         public User()
         {

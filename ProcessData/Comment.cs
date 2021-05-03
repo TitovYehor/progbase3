@@ -1,6 +1,6 @@
 using System;
 
-namespace ConsoleApp
+namespace ProcessData
 {
     public class Comment
     {   
@@ -29,6 +29,12 @@ namespace ConsoleApp
             this.createdAt = createdAt;
             this.userId = userId;
             this.postId = postId;
+        }
+
+
+        public override string ToString()
+        {
+            return $"{id}) |{content}| [{createdAt.ToString()}]";
         }
     }
 }

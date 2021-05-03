@@ -2,7 +2,7 @@ using System;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
 
-namespace ConsoleApp
+namespace ProcessData
 {
     public class PostRepository
     {
@@ -126,6 +126,30 @@ namespace ConsoleApp
         
 
 
+        public Post[] GetFiltredPosts(string text)
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * 
+                                    FROM users, posts, comments
+                                    WHERE users.id = posts.user_id AND users.id = comments.user_id 
+                                    AND posts.id = comments.post_id AND posts.content LIKE '%' || $valueX || '%'";
+            command.Parameters.AddWithValue("$valueX", text);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+          //  Post[] posts = ReadCrossJoin(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return null;
+        }
+
+
+
         private static Post[] ReadPosts(SqliteDataReader reader)
         {
             List<Post> postsList = new List<Post>();
@@ -155,5 +179,10 @@ namespace ConsoleApp
 
             return post;
         }
+    
+        //private static Post[] ReadCrossJoin(SqliteDataReader reader)
+        // {
+
+        // }
     }
 }

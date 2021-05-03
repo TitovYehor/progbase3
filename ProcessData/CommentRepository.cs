@@ -2,7 +2,7 @@ using System;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
 
-namespace ConsoleApp
+namespace ProcessData
 {
     public class CommentRepository
     {
