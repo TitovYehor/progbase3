@@ -2,6 +2,7 @@ using System;
 using Microsoft.Data.Sqlite;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Generic;
 using static System.Console;
 
 using ProcessData;
@@ -73,6 +74,14 @@ namespace ConsoleApp
                         else if (command[0] == "login")
                         {
                             ProcessLogin(command, userRep, currentUser);
+                        }
+                        else if (command[0] == "export")
+                        {
+                            ProcessExport(command, postRep, commentRep);
+                        }
+                        else if (command[0] == "import")
+                        {
+                            ProcessImport(command, userRep, postRep, commentRep);
                         }
                         else
                         {
@@ -161,7 +170,63 @@ namespace ConsoleApp
             }
         }
 
-        
+        static void ProcessExport(string[] command, PostRepository postRep, CommentRepository commentRep)
+        {
+            if (command.Length < 3)
+            {
+                throw new ArgumentException("Wrong command input. Command 'export' must have a form: export {zipName} {searchValue}");
+            }
+
+            string searchValue = String.Join(' ', command, 2, command.Length - 2);
+
+            Post[] searchPosts = postRep.GetFiltredByTextPosts(searchValue);
+
+            if (searchPosts.Length == 0)
+            {
+                WriteLine("Nothing found");
+            }
+            else
+            {
+                List<Comment> list = new List<Comment>();
+
+                for (int i = 0; i < searchPosts.Length; i++)
+                {
+                    for (int j = 0; j < searchPosts[i].comments.Length; j++)
+                    {
+                        list.Add(searchPosts[i].comments[j]);
+                    }
+                }
+
+                Comment[] comments = new Comment[list.Count];
+                list.CopyTo(comments);
+
+                if (ExportAndImportData.ExportPostsWithComments(command[1], searchPosts, comments))
+                {
+                    WriteLine("Data exported");
+                }
+                else
+                {
+                    WriteLine("Data not imported");
+                }
+            }
+        }
+
+        static void ProcessImport(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep)
+        {
+            if (command.Length != 2)
+            {
+                throw new ArgumentException("Wrong command input. Command 'import' must have a form: import {zipName}");
+            }
+
+            if (ExportAndImportData.ImportPostsWithComments(command[1], userRep, postRep, commentRep))
+            {
+                WriteLine("Data imported");
+            }
+            else
+            {
+                WriteLine("Data not imported");
+            }
+        }
 
         
 

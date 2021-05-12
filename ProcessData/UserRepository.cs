@@ -37,6 +37,28 @@ namespace ProcessData
             return isExists;
         }
 
+        public bool UserExistsById(int id)
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM users WHERE id = $id";
+            command.Parameters.AddWithValue("$id", id);
+
+            int countOfFound = (int)(long)command.ExecuteScalar();
+
+            bool isExists = false;
+
+            if (countOfFound != 0)
+            {
+                isExists = true;
+            }
+
+            connection.Close();
+
+            return isExists;
+        } 
+
         public User[] GetAllUsers()
         {
             connection.Open();
@@ -104,6 +126,30 @@ namespace ProcessData
 
             return user;
         }    
+
+        public User GetById(int id) 
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM users WHERE id = $id";
+            command.Parameters.AddWithValue("$id", id);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            User user = null;
+
+            if (reader.Read())
+            {
+                user = ReadUser(reader);
+            }
+
+            reader.Close();
+
+            connection.Close();
+
+            return user;
+        }
 
         public bool Update(int userId, User user)
         {

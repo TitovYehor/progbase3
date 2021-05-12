@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace ProcessData
 {
@@ -10,12 +10,17 @@ namespace ProcessData
         public string content;
 
         public DateTime createdAt;
-
+        
+        [XmlIgnore]
         public Comment[] comments;  
+        
+        public int userId;   
 
-        public int userId;    
-
+        [XmlIgnore]
         public User author; 
+
+        [XmlIgnore]
+        public bool imported = false;
 
 
         public Post()

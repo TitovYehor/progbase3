@@ -34,6 +34,52 @@ namespace ProcessData
             return posts;
         }
 
+        public bool PostExists(int id)
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM posts WHERE id = $id";
+            command.Parameters.AddWithValue("$id", id);
+
+            int countOfFound = (int)(long)command.ExecuteScalar();
+
+            bool isExists = false;
+
+            if (countOfFound != 0)
+            {
+                isExists = true;
+            }
+
+            connection.Close();
+
+            return isExists;
+        }
+
+        // public Post GetById(int id) 
+        // {
+        //     connection.Open();
+
+        //     SqliteCommand command = connection.CreateCommand();
+        //     command.CommandText = @"SELECT * FROM posts WHERE id = $id";
+        //     command.Parameters.AddWithValue("$id", id);
+
+        //     SqliteDataReader reader = command.ExecuteReader();
+
+        //     Post post = null;
+
+        //     if (reader.Read())
+        //     {
+        //         post = ReadPost(reader);
+        //     }
+
+        //     reader.Close();
+
+        //     connection.Close();
+
+        //     return post;
+        // }
+
         public int Insert(Post post) 
         {
             connection.Open();
@@ -42,8 +88,8 @@ namespace ProcessData
 
             command.CommandText = 
             @"
-                INSERT INTO posts (content, createdAt, user_id) 
-                VALUES ($content, $createdAt, $userId);
+                INSERT INTO posts (content, createdAt, user_id, imported) 
+                VALUES ($content, $createdAt, $userId, $imported);
 
                 SELECT last_insert_rowid();
             ";
@@ -51,6 +97,7 @@ namespace ProcessData
             command.Parameters.AddWithValue("$content", post.content);
             command.Parameters.AddWithValue("$createdAt", post.createdAt.ToString("o"));
             command.Parameters.AddWithValue("$userId", post.userId);
+            command.Parameters.AddWithValue("$imported", post.imported ? 1 : 0);
 
             int insertedId = (int)(long)command.ExecuteScalar();
 
@@ -156,8 +203,8 @@ namespace ProcessData
             DateTime dateRight = dateIntervals[1];
 
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM users, posts, comments 
-                                    WHERE users.id = posts.user_id AND posts.id = comments.post_id 
+            command.CommandText = @"SELECT * FROM posts, comments 
+                                    WHERE posts.id = comments.post_id 
                                     AND posts.createdAt > $leftDateLim AND posts.createdAt < rightDateLim";
             command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
             command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
@@ -172,6 +219,8 @@ namespace ProcessData
 
             return posts;
         }
+
+
 
         private static Post[] ReadPosts(SqliteDataReader reader)
         {
@@ -197,13 +246,14 @@ namespace ProcessData
             string content = reader.GetString(1);
             DateTime createdAt = reader.GetDateTime(2);
             int userId = reader.GetInt32(3);
+            int imported = reader.GetInt32(4);
 
             Post post = new Post(postId, content, createdAt, userId);
+            post.imported = (imported == 1) ? true : false;
 
             return post;
         }
     
-
 
         public static Post[] ReadPostsFromCrossJoin(SqliteDataReader reader)
         {
@@ -238,13 +288,15 @@ namespace ProcessData
 
         private static Comment ReadCommentFromCrossJoin(SqliteDataReader reader)
         {
-            int id = reader.GetInt32(4);
-            string content = reader.GetString(5);
-            DateTime createdAt = reader.GetDateTime(6);
-            int userId = reader.GetInt32(7);
-            int postId = reader.GetInt32(8);
+            int id = reader.GetInt32(5);
+            string content = reader.GetString(6);
+            DateTime createdAt = reader.GetDateTime(7);
+            int userId = reader.GetInt32(8);
+            int postId = reader.GetInt32(9);
+            int imported = reader.GetInt32(10);
 
             Comment comment = new Comment(id, content, createdAt, userId, postId);
+            comment.imported = (imported == 1) ? true : false;
 
             return comment;
         }

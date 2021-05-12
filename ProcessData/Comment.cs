@@ -1,9 +1,10 @@
 using System;
+using System.Xml.Serialization;
 
 namespace ProcessData
 {
     public class Comment
-    {   
+    {  
         public int id;
         
         public string content;
@@ -14,7 +15,11 @@ namespace ProcessData
 
         public int userId;
 
+        [XmlIgnore]
         public User author;
+
+        [XmlIgnore]
+        public bool imported = false;
 
 
         public Comment()
