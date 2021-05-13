@@ -9,10 +9,17 @@ namespace ProcessData
     {
         private SqliteConnection connection;
 
-        public PostRepository(SqliteConnection connection)
+        public PostRepository(string databasePath)
         {
+            SqliteConnection connection = new SqliteConnection($"Data Source={databasePath}");
+            
             this.connection = connection;
         }
+
+        // public PostRepository(SqliteConnection connection)
+        // {
+        //     this.connection = connection;
+        // }
 
 
 
@@ -94,6 +101,33 @@ namespace ProcessData
                 SELECT last_insert_rowid();
             ";
 
+            command.Parameters.AddWithValue("$content", post.content);
+            command.Parameters.AddWithValue("$createdAt", post.createdAt.ToString("o"));
+            command.Parameters.AddWithValue("$userId", post.userId);
+            command.Parameters.AddWithValue("$imported", post.imported ? 1 : 0);
+
+            int insertedId = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            return insertedId;
+        }
+
+        public int InsertImported(Post post) 
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = 
+            @"
+                INSERT INTO posts (id, content, createdAt, user_id, imported) 
+                VALUES ($id, $content, $createdAt, $userId, $imported);
+
+                SELECT last_insert_rowid();
+            ";
+
+            command.Parameters.AddWithValue("$id", post.id);
             command.Parameters.AddWithValue("$content", post.content);
             command.Parameters.AddWithValue("$createdAt", post.createdAt.ToString("o"));
             command.Parameters.AddWithValue("$userId", post.userId);

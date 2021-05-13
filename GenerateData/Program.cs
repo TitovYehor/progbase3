@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Data.Sqlite;
 using System.Security.Cryptography;
 using System.Text;
 using System.IO;
@@ -32,13 +31,12 @@ namespace GenerateData
         static void Main(string[] args)
         {
             string databasePath = "../data/database.db";
-            SqliteConnection connection = new SqliteConnection($"Data Source={databasePath}");
 
-            UserRepository userRep = new UserRepository(connection);
+            UserRepository userRep = new UserRepository(databasePath);
 
-            PostRepository postRep = new PostRepository(connection);
+            PostRepository postRep = new PostRepository(databasePath);
 
-            CommentRepository commentRep = new CommentRepository(connection);
+            CommentRepository commentRep = new CommentRepository(databasePath);
 
             Service service = new Service(userRep, postRep, commentRep);
 

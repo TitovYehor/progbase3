@@ -84,6 +84,7 @@ namespace ProcessData
                     if (!postRepository.PostExists(comments[i].postId))
                     {
                         comments[i].imported = true;
+                        Post post = new Post();
                     }
 
                     commentRepository.Insert(comments[i]);

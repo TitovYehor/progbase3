@@ -8,10 +8,18 @@ namespace ProcessData
     {
         private SqliteConnection connection;
 
-        public CommentRepository(SqliteConnection connection)
+
+        public CommentRepository(string databasePath)
         {
+            SqliteConnection connection = new SqliteConnection($"Data Source={databasePath}");
+            
             this.connection = connection;
         }
+
+        // public CommentRepository(SqliteConnection connection)
+        // {
+        //     this.connection = connection;
+        // }
 
 
         
