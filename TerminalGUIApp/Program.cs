@@ -1,6 +1,8 @@
 ﻿using Terminal.Gui;
 
 using TerminalGUIApp.Windows.UserWindows;
+using TerminalGUIApp.Windows.PostWindows;
+//using TerminalGUIApp.Windows.CommentWindows;
 
 using ProcessData;
 
@@ -18,8 +20,8 @@ namespace TerminalGUIApp
             Application.Init();
             Toplevel top = Application.Top;
     
-            MainUsersWindow win = new MainUsersWindow();
-            win.SetRepository(usersRepository);
+            MainPostsWindow win = new MainPostsWindow();
+            win.SetRepository(postsRepository);
             top.Add(win);
     
             Application.Run();

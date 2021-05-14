@@ -4,21 +4,20 @@ using ProcessData;
 
 namespace TerminalGUIApp.Windows.PostWindows
 {
-    public class CreateUserDialog : Dialog
+    public class CreatePostDialog : Dialog
     {
         public bool canceled;
 
         protected Label idLbl;
-        protected TextField userUsernameInput;  
-        protected TextField userPasswordInput;
-        protected TextField userFullnameInput;
-        protected DateField userCreatedAtDateField;
+        protected TextField postContentInput; 
+        protected DateField postCreatedAtDateField; 
+        protected TextField postUserIdInput;
 
 
 
-        public CreateUserDialog()
+        public CreatePostDialog()
         {
-            this.Title = "Create user";
+            this.Title = "Create post";
 
             Label idLabelLbl = new Label("id: ")
             {
@@ -32,60 +31,46 @@ namespace TerminalGUIApp.Windows.PostWindows
             };           
             this.Add(idLabelLbl, idLbl);
 
-            Label userUsernameLbl = new Label("Username: ")
+            Label postContentLbl = new Label("Content: ")
             {
                 X = Pos.Left(idLabelLbl),
                 Y = Pos.Top(idLabelLbl) + Pos.Percent(10),
             };
-            userUsernameInput = new TextField("")
+            postContentInput = new TextField("")
             {
                 X = Pos.Left(idLbl),
-                Y = Pos.Top(userUsernameLbl),
+                Y = Pos.Top(postContentLbl),
                 Width = Dim.Percent(25),
             };
-            this.Add(userUsernameLbl, userUsernameInput);
+            this.Add(postContentLbl, postContentInput);
 
-            Label userPasswordLbl = new Label("Password: ")
+            Label postCreatedAtLbl = new Label("CreatedAt: ")
             {
                 X = Pos.Left(idLabelLbl),
                 Y = Pos.Top(idLabelLbl) + Pos.Percent(20),
             };
-            userPasswordInput = new TextField("")
+            postCreatedAtDateField = new DateField()
             {
                 X = Pos.Left(idLbl),
-                Y = Pos.Top(userPasswordLbl),
-                Width = Dim.Percent(25),
-                Secret = true,
-            };
-            this.Add(userPasswordLbl, userPasswordInput);
-
-            Label userFullnameLbl = new Label("Fullname: ")
-            {
-                X = Pos.Left(idLabelLbl),
-                Y = Pos.Top(idLabelLbl) + Pos.Percent(30),
-            };
-            userFullnameInput = new TextField("")
-            {
-                X = Pos.Left(idLbl),
-                Y = Pos.Top(userFullnameLbl),
-                Width = Dim.Percent(25),
-            };
-            this.Add(userFullnameLbl, userFullnameInput);
-
-            Label userCreatedAtLbl = new Label("CreatedAt: ")
-            {
-                X = Pos.Left(idLabelLbl),
-                Y = Pos.Top(idLabelLbl) + Pos.Percent(40),
-            };
-            userCreatedAtDateField = new DateField()
-            {
-                X = Pos.Percent(20),
-                Y = Pos.Top(userCreatedAtLbl),
+                Y = Pos.Top(postCreatedAtLbl),
                 Width = Dim.Percent(25),
                 IsShortFormat = false,
                 ReadOnly = true,
             };
-            this.Add(userCreatedAtLbl, userCreatedAtDateField);
+            this.Add(postCreatedAtLbl, postCreatedAtDateField);
+
+            Label postUserIdLbl = new Label("User id: ")
+            {
+                X = Pos.Left(idLabelLbl),
+                Y = Pos.Top(idLabelLbl) + Pos.Percent(30),
+            };
+            postUserIdInput = new TextField("")
+            {
+                X = Pos.Left(idLbl),
+                Y = Pos.Top(postUserIdLbl),
+                Width = Dim.Percent(25),
+            };
+            this.Add(postUserIdLbl, postUserIdInput);
 
 
             Button okBtn = new Button("Ok");
@@ -99,14 +84,22 @@ namespace TerminalGUIApp.Windows.PostWindows
         }
 
 
-        public User GetUser()
+        public Post GetPost()
         {
-            return new User()
+            int userId;
+            bool tryUserId = int.TryParse(postUserIdInput.Text.ToString(), out userId);
+
+            if (!tryUserId || userId < 0)
             {
-                username = userUsernameInput.Text.ToString(),
-                password = userPasswordInput.Text.ToString(),
-                fullname = userFullnameInput.Text.ToString(),
-                createdAt = userCreatedAtDateField.Date, 
+                MessageBox.ErrorQuery("Creating user", "Incorrect userId value. Must be non-negative integer", "Ok");
+                return null;
+            }
+
+            return new Post()
+            {
+                content = postContentInput.Text.ToString(),
+                createdAt = postCreatedAtDateField.Date, 
+                userId = userId,
             };
         }
 

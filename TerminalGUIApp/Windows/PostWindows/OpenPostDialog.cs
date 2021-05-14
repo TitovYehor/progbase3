@@ -4,25 +4,24 @@ using ProcessData;
 
 namespace TerminalGUIApp.Windows.PostWindows
 {
-    public class OpenUserDialog : Dialog
+    public class OpenPostDialog : Dialog
     {
         public bool deleted;
 
         public bool changed;
 
-        protected User user;
+        protected Post post;
 
         private Label idLbl;
-        private TextField userUsernameInput;  
-        private TextField userPasswordInput;
-        private TextField userFullnameInput;
-        private DateField userCreatedAtDateField;
+        private TextField postContentInput; 
+        private DateField postCreatedAtDateField; 
+        private TextField postUserIdInput;
 
 
 
-        public OpenUserDialog()
+        public OpenPostDialog()
         {
-            this.Title = "User detail information";
+            this.Title = "Post detail information";
 
             Label idLabelLbl = new Label("id: ")
             {
@@ -36,63 +35,48 @@ namespace TerminalGUIApp.Windows.PostWindows
             };           
             this.Add(idLabelLbl, idLbl);
 
-            Label userUsernameLbl = new Label("Username: ")
+            Label postContentLbl = new Label("Content: ")
             {
                 X = Pos.Left(idLabelLbl),
                 Y = Pos.Top(idLabelLbl) + Pos.Percent(10),
             };
-            userUsernameInput = new TextField("")
+            postContentInput = new TextField("")
             {
                 X = Pos.Left(idLbl),
-                Y = Pos.Top(userUsernameLbl),
+                Y = Pos.Top(postContentLbl),
                 Width = Dim.Percent(25),
                 ReadOnly = true,
             };
-            this.Add(userUsernameLbl, userUsernameInput);
+            this.Add(postContentLbl, postContentInput);
 
-            Label userPasswordLbl = new Label("Password: ")
+            Label postCreatedAtLbl = new Label("CreatedAt: ")
             {
                 X = Pos.Left(idLabelLbl),
                 Y = Pos.Top(idLabelLbl) + Pos.Percent(20),
             };
-            userPasswordInput = new TextField("")
+            postCreatedAtDateField = new DateField()
             {
                 X = Pos.Left(idLbl),
-                Y = Pos.Top(userPasswordLbl),
-                Width = Dim.Percent(25),
-                Secret = true,
-                ReadOnly = true,
-            };
-            this.Add(userPasswordLbl, userPasswordInput);
-
-            Label userFullnameLbl = new Label("Fullname: ")
-            {
-                X = Pos.Left(idLabelLbl),
-                Y = Pos.Top(idLabelLbl) + Pos.Percent(30),
-            };
-            userFullnameInput = new TextField("")
-            {
-                X = Pos.Left(idLbl),
-                Y = Pos.Top(userFullnameLbl),
-                Width = Dim.Percent(25),
-                ReadOnly = true,
-            };
-            this.Add(userFullnameLbl, userFullnameInput);
-
-            Label userCreatedAtLbl = new Label("CreatedAt: ")
-            {
-                X = Pos.Left(idLabelLbl),
-                Y = Pos.Top(idLabelLbl) + Pos.Percent(40),
-            };
-            userCreatedAtDateField = new DateField()
-            {
-                X = Pos.Percent(20),
-                Y = Pos.Top(userCreatedAtLbl),
+                Y = Pos.Top(postCreatedAtLbl),
                 Width = Dim.Percent(25),
                 IsShortFormat = false,
                 ReadOnly = true,
             };
-            this.Add(userCreatedAtLbl, userCreatedAtDateField);
+            this.Add(postCreatedAtLbl, postCreatedAtDateField);
+
+            Label postPostIdLbl = new Label("Post id: ")
+            {
+                X = Pos.Left(idLabelLbl),
+                Y = Pos.Top(idLabelLbl) + Pos.Percent(30),
+            };
+            postUserIdInput = new TextField("")
+            {
+                X = Pos.Left(idLbl),
+                Y = Pos.Top(postPostIdLbl),
+                Width = Dim.Percent(25),
+                ReadOnly = true,
+            };
+            this.Add(postPostIdLbl, postUserIdInput);
             
             
             Button editBtn = new Button("Edit")
@@ -100,48 +84,47 @@ namespace TerminalGUIApp.Windows.PostWindows
                 X = Pos.Percent(90),
                 Y = Pos.Percent(5),
             };
-            editBtn.Clicked += OnUserEdit;
+            editBtn.Clicked += OnPostEdit;
             Button deleteBtn = new Button("Delete")
             {
                 X = editBtn.X,
                 Y = Pos.Percent(10),
             };
-            deleteBtn.Clicked += OnUserDelete;
+            deleteBtn.Clicked += OnPostDelete;
             this.Add(editBtn, deleteBtn);       
 
 
             Button backBtn = new Button("Back");
-            backBtn.Clicked += OnOpenUserDialogBack;
+            backBtn.Clicked += OnOpenPostDialogBack;
 
             this.AddButton(backBtn);
         }
 
 
-        public void SetUser(User user)
+        public void SetPost(Post post)
         {
-            this.user = user;
+            this.post = post;
 
-            this.idLbl.Text = user.id.ToString();
-            this.userUsernameInput.Text = user.username;
-            this.userPasswordInput.Text = user.password;
-            this.userFullnameInput.Text = user.fullname;
-            this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
+            this.idLbl.Text = post.id.ToString();
+            this.postContentInput.Text = post.content;
+            this.postCreatedAtDateField.Text = post.createdAt.ToShortDateString();
+            this.postUserIdInput.Text = post.userId.ToString();
         }
 
-        public User GetUser()
+        public Post GetPost()
         {
-            return user;
+            return post;
         }
 
 
-        private void OnOpenUserDialogBack()
+        private void OnOpenPostDialogBack()
         {
             Application.RequestStop();
         }
     
-        private void OnUserDelete()
+        private void OnPostDelete()
         {
-            int index = MessageBox.Query("Deleting user", "Confirm deleting", "No", "Yes");
+            int index = MessageBox.Query("Deleting post", "Confirm deleting", "No", "Yes");
 
             if (index == 1)
             {
@@ -151,24 +134,24 @@ namespace TerminalGUIApp.Windows.PostWindows
             }
         }
     
-        private void OnUserEdit()
+        private void OnPostEdit()
         {
-            EditUserDialog dialog = new EditUserDialog();
-            dialog.SetUser(user);
+            EditPostDialog dialog = new EditPostDialog();
+            dialog.SetPost(post);
 
             Application.Run(dialog);
 
             if (!dialog.canceled)
             {
-                User changedUser = dialog.GetUser();
+                Post changedPost = dialog.GetPost();
 
-                if (changedUser == null)
+                if (changedPost == null)
                 {
                     return;
                 } 
 
                 this.changed = true;
-                this.SetUser(changedUser);
+                this.SetPost(changedPost);
             }
         }
     }

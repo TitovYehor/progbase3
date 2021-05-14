@@ -14,8 +14,8 @@ namespace TerminalGUIApp.Windows.PostWindows
         private string searchValue = "";
         private bool selecting = false;
 
-        private ListView allUsersListView;
-        private UserRepository usersRepository;
+        private ListView allPostsListView;
+        private PostRepository postsRepository;
 
         private MenuBar mainMenu;
         private MenuBar helpMenu;
@@ -29,15 +29,15 @@ namespace TerminalGUIApp.Windows.PostWindows
         private Button prevPageBtn;
         private Button nextPageBtn;
 
-        private Button deleteUserBtn;
-        private Button editUserBtn;
+        private Button deletePostBtn;
+        private Button editPostBtn;
 
         private Label nullReferenceLbl = new Label();
 
 
         public MainPostsWindow()
         {
-            this.Title = "Users Window";
+            this.Title = "Posts Window";
 
             mainMenu = new MenuBar(
                 new MenuBarItem[] 
@@ -69,13 +69,13 @@ namespace TerminalGUIApp.Windows.PostWindows
             this.Add(mainMenu, helpMenu);
 
 
-            allUsersListView = new ListView(new List<User>())
+            allPostsListView = new ListView(new List<Post>())
             {
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
             };
-            allUsersListView.OpenSelectedItem += OnOpenUser;
-            allUsersListView.SelectedItemChanged += OnItemChanged;
+            allPostsListView.OpenSelectedItem += OnOpenPost;
+            allPostsListView.SelectedItemChanged += OnItemChanged;
 
             prevPageBtn = new Button("Previous page")
             {
@@ -108,42 +108,42 @@ namespace TerminalGUIApp.Windows.PostWindows
             prevPageBtn.Clicked += OnPrevPage;
             this.Add(prevPageBtn, pageLbl, separateLbl, totalPagesLbl, nextPageBtn);
 
-            frameView = new FrameView("Users")
+            frameView = new FrameView("Posts")
             {
                 X = Pos.Percent(15),
                 Y = Pos.Percent(20),
                 Width = Dim.Fill() - Dim.Percent(15),
                 Height = pageSize + 2,
             };
-            frameView.Add(allUsersListView);
+            frameView.Add(allPostsListView);
             this.Add(frameView);
 
-            Button createNewUserBtn = new Button("Create new user")
+            Button createNewPostBtn = new Button("Create new post")
             {
                 X = Pos.Left(frameView) + Pos.Percent(10),
                 Y = Pos.Bottom(frameView) + Pos.Percent(5),
             };
-            createNewUserBtn.Clicked += OnCreateButtonClick;
-            deleteUserBtn = new Button("Delete user")
+            createNewPostBtn.Clicked += OnCreateButtonClick;
+            deletePostBtn = new Button("Delete post")
             {
-                X = Pos.Right(createNewUserBtn) + Pos.Percent(10),
-                Y = Pos.Top(createNewUserBtn),
+                X = Pos.Right(createNewPostBtn) + Pos.Percent(10),
+                Y = Pos.Top(createNewPostBtn),
             };
-            deleteUserBtn.Clicked += OnDeleteUser;
-            editUserBtn = new Button("Edit user")
+            deletePostBtn.Clicked += OnDeletePost;
+            editPostBtn = new Button("Edit post")
             {
-                X = Pos.Right(deleteUserBtn) + Pos.Percent(10),
-                Y = Pos.Top(createNewUserBtn),
+                X = Pos.Right(deletePostBtn) + Pos.Percent(10),
+                Y = Pos.Top(createNewPostBtn),
             };
-            editUserBtn.Clicked += OnEditUser;
-            this.Add(createNewUserBtn, deleteUserBtn, editUserBtn);
+            editPostBtn.Clicked += OnEditPost;
+            this.Add(createNewPostBtn, deletePostBtn, editPostBtn);
 
             Label searchLbl = new Label("Seeking categories - ")
             {
                 X = Pos.Percent(33),
                 Y = Pos.Percent(15),
             };
-            Label chooseSearchColumn = new Label("Username / Fullname - ")
+            Label chooseSearchColumn = new Label("Content - ")
             {
                 X = Pos.Right(searchLbl),
                 Y = Pos.Top(searchLbl),
@@ -161,16 +161,16 @@ namespace TerminalGUIApp.Windows.PostWindows
 
 
 
-        public void SetRepository(UserRepository usersRepository)
+        public void SetRepository(PostRepository postsRepository)
         {
-            this.usersRepository = usersRepository;
+            this.postsRepository = postsRepository;
 
             UpdateCurrentPage();
         }
 
         private void UpdateCurrentPage()
         {
-            int totalPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
+            int totalPages = postsRepository.GetSearchPagesCount(pageSize, searchValue);
 
             if (page > totalPages)
             {
@@ -182,9 +182,9 @@ namespace TerminalGUIApp.Windows.PostWindows
 
             if (!selecting)
             {
-                this.allUsersListView.SetSource(usersRepository.GetSearchPage(searchValue, page, pageSize));
+                this.allPostsListView.SetSource(postsRepository.GetSearchPage(searchValue, page, pageSize));
 
-                if (allUsersListView.Source.ToList().Count == 0)
+                if (allPostsListView.Source.ToList().Count == 0)
                 {
                     nullReferenceLbl = new Label("No records found")
                     {
@@ -194,16 +194,16 @@ namespace TerminalGUIApp.Windows.PostWindows
                     frameView.RemoveAll();
                     frameView.Add(nullReferenceLbl);
 
-                    editUserBtn.Visible = false;
-                    deleteUserBtn.Visible = false;
+                    editPostBtn.Visible = false;
+                    deletePostBtn.Visible = false;
                 }
                 else
                 {
                     frameView.RemoveAll();
-                    frameView.Add(allUsersListView);
+                    frameView.Add(allPostsListView);
 
-                    editUserBtn.Visible = true;
-                    deleteUserBtn.Visible = true;
+                    editPostBtn.Visible = true;
+                    deletePostBtn.Visible = true;
                 }
             }
             else
@@ -242,7 +242,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
         private void OnNextPage()
         {
-            int totalPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
+            int totalPages = postsRepository.GetSearchPagesCount(pageSize, searchValue);
 
             if (page >= totalPages)
             {
@@ -256,7 +256,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
         private void OnPrevPage()
         {
-            int totalPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
+            int totalPages = postsRepository.GetSearchPagesCount(pageSize, searchValue);
 
             if (page == 1)
             {
@@ -269,37 +269,37 @@ namespace TerminalGUIApp.Windows.PostWindows
         }
 
 
-        private void OnDeleteUser()
+        private void OnDeletePost()
         {
-            int index = MessageBox.Query("Deleting user", "Confirm deleting", "No", "Yes");
+            int index = MessageBox.Query("Deleting post", "Confirm deleting", "No", "Yes");
 
             if (index == 1)
             {
-                int userIndex = allUsersListView.SelectedItem;
+                int postIndex = allPostsListView.SelectedItem;
              
-                if (userIndex == -1 || userIndex >= allUsersListView.Source.ToList().Count)
+                if (postIndex == -1 || postIndex >= allPostsListView.Source.ToList().Count)
                 {
-                    MessageBox.ErrorQuery("Deleting user", "No user selected", "Ok");
+                    MessageBox.ErrorQuery("Deleting post", "No post selected", "Ok");
 
                     return; 
                 }
 
-                User selectedUser = (User)allUsersListView.Source.ToList()[userIndex];
+                Post selectedPost = (Post)allPostsListView.Source.ToList()[postIndex];
 
-                if (selectedUser == null)
+                if (selectedPost == null)
                 {
                     return;
                 }
             
-                if (!usersRepository.DeleteByUsername(selectedUser.username))
+                if (!postsRepository.DeleteById(selectedPost.id))
                 {
-                    MessageBox.ErrorQuery("Deleting user", "Couldn't delete user", "Ok");
+                    MessageBox.ErrorQuery("Deleting post", "Couldn't delete post", "Ok");
 
                     return;
                 }
                 else
                 {
-                    int countOfPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
+                    int countOfPages = postsRepository.GetSearchPagesCount(pageSize, searchValue);
 
                     if (page > countOfPages && page > 1)
                     {
@@ -311,42 +311,42 @@ namespace TerminalGUIApp.Windows.PostWindows
             }
         }
 
-        private void OnEditUser()
+        private void OnEditPost()
         {            
-            int userIndex = allUsersListView.SelectedItem;
+            int postIndex = allPostsListView.SelectedItem;
              
-            if (userIndex == -1 || userIndex >= allUsersListView.Source.ToList().Count)
+            if (postIndex == -1 || postIndex >= allPostsListView.Source.ToList().Count)
             {
-                MessageBox.ErrorQuery("Editing user", "No user selected", "Ok");
+                MessageBox.ErrorQuery("Editing post", "No post selected", "Ok");
 
                 return; 
             }
 
-            User selectedUser = (User)allUsersListView.Source.ToList()[userIndex];
+            Post selectedPost = (Post)allPostsListView.Source.ToList()[postIndex];
 
-            EditUserDialog dialog = new EditUserDialog();
-            dialog.SetUser(selectedUser);
+            EditPostDialog dialog = new EditPostDialog();
+            dialog.SetPost(selectedPost);
 
             Application.Run(dialog);
 
             if (!dialog.canceled)
             {
-                User changedUser = dialog.GetUser(); 
+                Post changedPost = dialog.GetPost(); 
 
-                if (changedUser == null)
+                if (changedPost == null)
                 {
                     return;
                 }
             
-                bool isUpdated = usersRepository.Update(selectedUser.id, changedUser); 
+                bool isUpdated = postsRepository.Update(selectedPost.id, changedPost); 
 
                 if (isUpdated)
                 {
-                    allUsersListView.SetSource(usersRepository.GetSearchPage(searchValue, page, pageSize));
+                    allPostsListView.SetSource(postsRepository.GetSearchPage(searchValue, page, pageSize));
                 }
                 else
                 {
-                    MessageBox.ErrorQuery("Editing user", "Couldn't edit user", "Ok");
+                    MessageBox.ErrorQuery("Editing post", "Couldn't edit post", "Ok");
                 }
             }
         }
@@ -370,50 +370,50 @@ namespace TerminalGUIApp.Windows.PostWindows
 
         private void OnCreateButtonClick()
         {
-            CreateUserDialog dialog = new CreateUserDialog();
+            CreatePostDialog dialog = new CreatePostDialog();
 
             Application.Run(dialog);
 
             if (!dialog.canceled)
             {
-                User user = dialog.GetUser();
+                Post post = dialog.GetPost();
 
-                if (user == null)
+                if (post == null)
                 {
                     return;
                 }
 
-                user.createdAt = DateTime.Now;
-                int insertedId = usersRepository.Insert(user);
-                user.id = insertedId;
+                post.createdAt = DateTime.Now;
+                int insertedId = postsRepository.Insert(post);
+                post.id = insertedId;
 
-                allUsersListView.SetSource(usersRepository.GetSearchPage("", usersRepository.GetSearchPagesCount(pageSize, ""), pageSize));
+                allPostsListView.SetSource(postsRepository.GetSearchPage("", postsRepository.GetSearchPagesCount(pageSize, ""), pageSize));
 
-                allUsersListView.SelectedItem = allUsersListView.Source.ToList().Count - 1;
+                allPostsListView.SelectedItem = allPostsListView.Source.ToList().Count - 1;
 
-                allUsersListView.OnOpenSelectedItem();
+                allPostsListView.OnOpenSelectedItem();
 
                 UpdateCurrentPage();
             }
         }
     
     
-        private void OnOpenUser(ListViewItemEventArgs args)
+        private void OnOpenPost(ListViewItemEventArgs args)
         {            
-            User user = (User)args.Value;
+            Post post = (Post)args.Value;
 
-            OpenUserDialog dialog = new OpenUserDialog();
-            dialog.SetUser(user);
+            OpenPostDialog dialog = new OpenPostDialog();
+            dialog.SetPost(post);
 
             Application.Run(dialog);
 
             if (dialog.deleted)
             {
-                bool isDeleted = usersRepository.DeleteByUsername(user.username); 
+                bool isDeleted = postsRepository.DeleteById(post.id); 
 
                 if (isDeleted)
                 {
-                    int countOfPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
+                    int countOfPages = postsRepository.GetSearchPagesCount(pageSize, searchValue);
 
                     if (page > countOfPages && page > 1)
                     {
@@ -424,15 +424,15 @@ namespace TerminalGUIApp.Windows.PostWindows
                 }
                 else
                 {
-                    MessageBox.ErrorQuery("Deleting user", "Couldn't delete user", "Ok");
+                    MessageBox.ErrorQuery("Deleting post", "Couldn't delete post", "Ok");
                 }
             }
         
             if (dialog.changed)
             {
-                User changedUser = dialog.GetUser();
+                Post changedPost = dialog.GetPost();
 
-                bool isUpdated = usersRepository.Update(user.id, changedUser); 
+                bool isUpdated = postsRepository.Update(post.id, changedPost); 
 
                 if (isUpdated)
                 {
@@ -440,7 +440,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 }
                 else
                 {
-                    MessageBox.ErrorQuery("Editing user", "Couldn't edit user", "Ok");
+                    MessageBox.ErrorQuery("Editing post", "Couldn't edit post", "Ok");
                 }
             }
         }

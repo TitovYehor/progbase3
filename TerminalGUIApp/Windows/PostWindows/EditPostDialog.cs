@@ -2,20 +2,19 @@ using ProcessData;
 
 namespace TerminalGUIApp.Windows.PostWindows
 {
-    public class EditUserDialog : CreateUserDialog
+    public class EditPostDialog : CreatePostDialog
     {
-        public EditUserDialog()
+        public EditPostDialog()
         {
-            this.Title = "Edit user";
+            this.Title = "Edit post";
         }
 
-        public void SetUser(User user)
+        public void SetPost(Post post)
         {
-            this.idLbl.Text = user.id.ToString();
-            this.userUsernameInput.Text = user.username;
-            this.userPasswordInput.Text = user.password;
-            this.userFullnameInput.Text = user.fullname;
-            this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
+            this.idLbl.Text = post.id.ToString();
+            this.postContentInput.Text = post.content;
+            this.postCreatedAtDateField.Text = post.createdAt.ToShortDateString();
+            this.postUserIdInput.Text = post.userId.ToString();
         }
     }
 }
