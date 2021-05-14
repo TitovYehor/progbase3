@@ -4,7 +4,7 @@ using Terminal.Gui;
 
 using ProcessData;
 
-namespace TerminalGUIApp
+namespace TerminalGUIApp.Windows.UserWindows
 {
     public class MainUsersWindow : Window
     {

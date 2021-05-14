@@ -1,6 +1,6 @@
 using ProcessData;
 
-namespace TerminalGUIApp
+namespace TerminalGUIApp.Windows.PostWindows
 {
     public class EditUserDialog : CreateUserDialog
     {

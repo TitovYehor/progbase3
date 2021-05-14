@@ -2,23 +2,27 @@ using Terminal.Gui;
 
 using ProcessData;
 
-namespace TerminalGUIApp
+namespace TerminalGUIApp.Windows.UserWindows
 {
-    public class CreateUserDialog : Dialog
+    public class OpenUserDialog : Dialog
     {
-        public bool canceled;
+        public bool deleted;
 
-        protected Label idLbl;
-        protected TextField userUsernameInput;  
-        protected TextField userPasswordInput;
-        protected TextField userFullnameInput;
-        protected DateField userCreatedAtDateField;
+        public bool changed;
+
+        protected User user;
+
+        private Label idLbl;
+        private TextField userUsernameInput;  
+        private TextField userPasswordInput;
+        private TextField userFullnameInput;
+        private DateField userCreatedAtDateField;
 
 
 
-        public CreateUserDialog()
+        public OpenUserDialog()
         {
-            this.Title = "Create user";
+            this.Title = "User detail information";
 
             Label idLabelLbl = new Label("id: ")
             {
@@ -42,6 +46,7 @@ namespace TerminalGUIApp
                 X = Pos.Left(idLbl),
                 Y = Pos.Top(userUsernameLbl),
                 Width = Dim.Percent(25),
+                ReadOnly = true,
             };
             this.Add(userUsernameLbl, userUsernameInput);
 
@@ -56,6 +61,7 @@ namespace TerminalGUIApp
                 Y = Pos.Top(userPasswordLbl),
                 Width = Dim.Percent(25),
                 Secret = true,
+                ReadOnly = true,
             };
             this.Add(userPasswordLbl, userPasswordInput);
 
@@ -69,6 +75,7 @@ namespace TerminalGUIApp
                 X = Pos.Left(idLbl),
                 Y = Pos.Top(userFullnameLbl),
                 Width = Dim.Percent(25),
+                ReadOnly = true,
             };
             this.Add(userFullnameLbl, userFullnameInput);
 
@@ -86,43 +93,83 @@ namespace TerminalGUIApp
                 ReadOnly = true,
             };
             this.Add(userCreatedAtLbl, userCreatedAtDateField);
+            
+            
+            Button editBtn = new Button("Edit")
+            {
+                X = Pos.Percent(90),
+                Y = Pos.Percent(5),
+            };
+            editBtn.Clicked += OnUserEdit;
+            Button deleteBtn = new Button("Delete")
+            {
+                X = editBtn.X,
+                Y = Pos.Percent(10),
+            };
+            deleteBtn.Clicked += OnUserDelete;
+            this.Add(editBtn, deleteBtn);       
 
 
-            Button okBtn = new Button("Ok");
-            okBtn.Clicked += OnCreateDialogSubmit;
+            Button backBtn = new Button("Back");
+            backBtn.Clicked += OnOpenUserDialogBack;
 
-            Button cancelBtn = new Button("Cancel");
-            cancelBtn.Clicked += OnCreateDialogCanceled;
-
-            this.AddButton(cancelBtn);
-            this.AddButton(okBtn);
+            this.AddButton(backBtn);
         }
 
+
+        public void SetUser(User user)
+        {
+            this.user = user;
+
+            this.idLbl.Text = user.id.ToString();
+            this.userUsernameInput.Text = user.username;
+            this.userPasswordInput.Text = user.password;
+            this.userFullnameInput.Text = user.fullname;
+            this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
+        }
 
         public User GetUser()
         {
-            return new User()
+            return user;
+        }
+
+
+        private void OnOpenUserDialogBack()
+        {
+            Application.RequestStop();
+        }
+    
+        private void OnUserDelete()
+        {
+            int index = MessageBox.Query("Deleting user", "Confirm deleting", "No", "Yes");
+
+            if (index == 1)
             {
-                username = userUsernameInput.Text.ToString(),
-                password = userPasswordInput.Text.ToString(),
-                fullname = userFullnameInput.Text.ToString(),
-                createdAt = userCreatedAtDateField.Date, 
-            };
+                deleted = true;
+
+                Application.RequestStop();
+            }
         }
-
-
-        private void OnCreateDialogCanceled()
+    
+        private void OnUserEdit()
         {
-            canceled = true;
+            EditUserDialog dialog = new EditUserDialog();
+            dialog.SetUser(user);
 
-            Application.RequestStop();
-        }
+            Application.Run(dialog);
 
-        private void OnCreateDialogSubmit()
-        {
-            canceled = false;
+            if (!dialog.canceled)
+            {
+                User changedUser = dialog.GetUser();
 
-            Application.RequestStop();
+                if (changedUser == null)
+                {
+                    return;
+                } 
+
+                this.changed = true;
+                this.SetUser(changedUser);
+            }
         }
     }
 }
