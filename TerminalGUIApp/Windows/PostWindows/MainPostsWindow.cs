@@ -337,6 +337,8 @@ namespace TerminalGUIApp.Windows.PostWindows
                 {
                     return;
                 }
+
+                changedPost.createdAt = selectedPost.createdAt;
             
                 bool isUpdated = postsRepository.Update(selectedPost.id, changedPost); 
 
@@ -431,6 +433,8 @@ namespace TerminalGUIApp.Windows.PostWindows
             if (dialog.changed)
             {
                 Post changedPost = dialog.GetPost();
+
+                changedPost.createdAt = post.createdAt;
 
                 bool isUpdated = postsRepository.Update(post.id, changedPost); 
 

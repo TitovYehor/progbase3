@@ -82,8 +82,8 @@ namespace ProcessData
 
             command.CommandText = 
             @"
-                INSERT INTO comments (content, createdAt, user_id, post_id, imported) 
-                VALUES ($content, $createdAt, $userId, $postId, $imported);
+                INSERT INTO comments (content, createdAt, user_id, post_id) 
+                VALUES ($content, $createdAt, $userId, $postId);
 
                 SELECT last_insert_rowid();
             ";
@@ -92,7 +92,33 @@ namespace ProcessData
             command.Parameters.AddWithValue("$createdAt", comment.createdAt.ToString("o"));
             command.Parameters.AddWithValue("$userId", comment.userId);
             command.Parameters.AddWithValue("$postId", comment.postId);
-            command.Parameters.AddWithValue("$imported", comment.imported ? 1 : 0);
+
+            int insertedId = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            return insertedId;
+        }
+
+        public int InsertImport(Comment comment) 
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = 
+            @"
+                INSERT INTO comments (id, content, createdAt, user_id, post_id) 
+                VALUES ($id, $content, $createdAt, $userId, $postId);
+
+                SELECT last_insert_rowid();
+            ";
+
+            command.Parameters.AddWithValue("$id", comment.id);
+            command.Parameters.AddWithValue("$content", comment.content);
+            command.Parameters.AddWithValue("$createdAt", comment.createdAt.ToString("o"));
+            command.Parameters.AddWithValue("$userId", comment.userId);
+            command.Parameters.AddWithValue("$postId", comment.postId);
 
             int insertedId = (int)(long)command.ExecuteScalar();
 
@@ -237,10 +263,8 @@ namespace ProcessData
             DateTime createdAt = reader.GetDateTime(2);
             int authorId = reader.GetInt32(3);
             int postId = reader.GetInt32(4);
-            int imported = reader.GetInt32(5);
             
             Comment comment = new Comment(commentId, content, createdAt, authorId, postId);
-            comment.imported = (imported == 1) ? true : false;
 
             return comment;
         }

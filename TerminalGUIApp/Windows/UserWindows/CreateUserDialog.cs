@@ -13,6 +13,8 @@ namespace TerminalGUIApp.Windows.UserWindows
         protected TextField userPasswordInput;
         protected TextField userFullnameInput;
         protected DateField userCreatedAtDateField;
+        protected Label userImportedCaptionLbl;
+        protected Label userImportedLbl;
 
 
 
@@ -87,6 +89,21 @@ namespace TerminalGUIApp.Windows.UserWindows
             };
             this.Add(userCreatedAtLbl, userCreatedAtDateField);
 
+            userImportedCaptionLbl = new Label("Imported: ")
+            {
+                X = Pos.Left(idLabelLbl),
+                Y = Pos.Top(idLabelLbl) + Pos.Percent(50),
+                Visible = false,
+            };
+            userImportedLbl = new Label("?")
+            {
+                X = Pos.Percent(20),
+                Y = Pos.Top(userImportedCaptionLbl),
+                Width = Dim.Percent(25),
+                Visible = false,
+            };
+            this.Add(userImportedCaptionLbl, userImportedLbl);
+
 
             Button okBtn = new Button("Ok");
             okBtn.Clicked += OnCreateDialogSubmit;
@@ -103,10 +120,12 @@ namespace TerminalGUIApp.Windows.UserWindows
         {
             return new User()
             {
+                id = int.Parse(idLbl.Text.ToString()),
                 username = userUsernameInput.Text.ToString(),
                 password = userPasswordInput.Text.ToString(),
                 fullname = userFullnameInput.Text.ToString(),
                 createdAt = userCreatedAtDateField.Date, 
+                imported = (userImportedLbl.Text.ToString() == "True") ? true : false,
             };
         }
 

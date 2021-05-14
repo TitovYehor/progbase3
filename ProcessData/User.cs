@@ -19,6 +19,9 @@ namespace ProcessData
 
         public Comment[] comments;
 
+        public bool imported = false;
+
+
         public User()
         {
             this.createdAt = DateTime.Now;

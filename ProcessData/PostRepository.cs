@@ -126,8 +126,8 @@ namespace ProcessData
 
             command.CommandText = 
             @"
-                INSERT INTO posts (content, createdAt, user_id, imported) 
-                VALUES ($content, $createdAt, $userId, $imported);
+                INSERT INTO posts (content, createdAt, user_id) 
+                VALUES ($content, $createdAt, $userId);
 
                 SELECT last_insert_rowid();
             ";
@@ -135,7 +135,6 @@ namespace ProcessData
             command.Parameters.AddWithValue("$content", post.content);
             command.Parameters.AddWithValue("$createdAt", post.createdAt.ToString("o"));
             command.Parameters.AddWithValue("$userId", post.userId);
-            command.Parameters.AddWithValue("$imported", post.imported ? 1 : 0);
 
             int insertedId = (int)(long)command.ExecuteScalar();
 
@@ -144,7 +143,7 @@ namespace ProcessData
             return insertedId;
         }
 
-        public int InsertImported(Post post) 
+        public int InsertImport(Post post) 
         {
             connection.Open();
 
@@ -152,8 +151,8 @@ namespace ProcessData
 
             command.CommandText = 
             @"
-                INSERT INTO posts (id, content, createdAt, user_id, imported) 
-                VALUES ($id, $content, $createdAt, $userId, $imported);
+                INSERT INTO posts (id, content, createdAt, user_id) 
+                VALUES ($id, $content, $createdAt, $userId);
 
                 SELECT last_insert_rowid();
             ";
@@ -162,7 +161,6 @@ namespace ProcessData
             command.Parameters.AddWithValue("$content", post.content);
             command.Parameters.AddWithValue("$createdAt", post.createdAt.ToString("o"));
             command.Parameters.AddWithValue("$userId", post.userId);
-            command.Parameters.AddWithValue("$imported", post.imported ? 1 : 0);
 
             int insertedId = (int)(long)command.ExecuteScalar();
 
@@ -310,10 +308,8 @@ namespace ProcessData
             string content = reader.GetString(1);
             DateTime createdAt = reader.GetDateTime(2);
             int userId = reader.GetInt32(3);
-            int imported = reader.GetInt32(4);
 
             Post post = new Post(postId, content, createdAt, userId);
-            post.imported = (imported == 1) ? true : false;
 
             return post;
         }
@@ -352,15 +348,13 @@ namespace ProcessData
 
         private static Comment ReadCommentFromCrossJoin(SqliteDataReader reader)
         {
-            int id = reader.GetInt32(5);
-            string content = reader.GetString(6);
-            DateTime createdAt = reader.GetDateTime(7);
-            int userId = reader.GetInt32(8);
-            int postId = reader.GetInt32(9);
-            int imported = reader.GetInt32(10);
+            int id = reader.GetInt32(4);
+            string content = reader.GetString(5);
+            DateTime createdAt = reader.GetDateTime(6);
+            int userId = reader.GetInt32(7);
+            int postId = reader.GetInt32(8);
 
             Comment comment = new Comment(id, content, createdAt, userId, postId);
-            comment.imported = (imported == 1) ? true : false;
 
             return comment;
         }

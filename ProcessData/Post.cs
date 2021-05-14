@@ -17,10 +17,7 @@ namespace ProcessData
         public int userId;   
 
         [XmlIgnore]
-        public User author; 
-
-        [XmlIgnore]
-        public bool imported = false;
+        public User author;
 
 
         public Post()

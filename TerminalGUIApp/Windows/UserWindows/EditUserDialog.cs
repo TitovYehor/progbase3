@@ -7,6 +7,8 @@ namespace TerminalGUIApp.Windows.UserWindows
         public EditUserDialog()
         {
             this.Title = "Edit user";
+            this.userImportedLbl.Visible = true;
+            this.userImportedCaptionLbl.Visible = true;
         }
 
         public void SetUser(User user)
@@ -16,6 +18,7 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.userPasswordInput.Text = user.password;
             this.userFullnameInput.Text = user.fullname;
             this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
+            this.userImportedLbl.Text = user.imported.ToString();
         }
     }
 }

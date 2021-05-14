@@ -150,6 +150,8 @@ namespace TerminalGUIApp.Windows.PostWindows
                     return;
                 } 
 
+                changedPost.createdAt = post.createdAt;
+
                 this.changed = true;
                 this.SetPost(changedPost);
             }

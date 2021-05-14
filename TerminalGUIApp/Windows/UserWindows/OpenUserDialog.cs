@@ -17,6 +17,7 @@ namespace TerminalGUIApp.Windows.UserWindows
         private TextField userPasswordInput;
         private TextField userFullnameInput;
         private DateField userCreatedAtDateField;
+        private Label userImportedLbl;
 
 
 
@@ -93,6 +94,19 @@ namespace TerminalGUIApp.Windows.UserWindows
                 ReadOnly = true,
             };
             this.Add(userCreatedAtLbl, userCreatedAtDateField);
+
+            Label userImportedCaptionLbl = new Label("Imported: ")
+            {
+                X = Pos.Left(idLabelLbl),
+                Y = Pos.Top(idLabelLbl) + Pos.Percent(50),
+            };
+            userImportedLbl = new Label("?")
+            {
+                X = Pos.Percent(20),
+                Y = Pos.Top(userImportedCaptionLbl),
+                Width = Dim.Percent(25),
+            };
+            this.Add(userImportedCaptionLbl, userImportedLbl);
             
             
             Button editBtn = new Button("Edit")
@@ -126,6 +140,7 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.userPasswordInput.Text = user.password;
             this.userFullnameInput.Text = user.fullname;
             this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
+            this.userImportedLbl.Text = user.imported.ToString();
         }
 
         public User GetUser()
@@ -166,6 +181,8 @@ namespace TerminalGUIApp.Windows.UserWindows
                 {
                     return;
                 } 
+
+                changedUser.createdAt = user.createdAt;
 
                 this.changed = true;
                 this.SetUser(changedUser);

@@ -173,6 +173,34 @@ namespace ProcessData
             return insertedId;
         }
 
+        public int InsertImport(User user) 
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = 
+            @"
+                INSERT INTO users (id, username, password, fullname, createdAt, imported) 
+                VALUES ($id, $username, $password, $fullname, $createdAt, $imported);
+
+                SELECT last_insert_rowid();
+            ";
+            
+            command.Parameters.AddWithValue("$id", user.id);
+            command.Parameters.AddWithValue("$username", user.username);
+            command.Parameters.AddWithValue("$password", user.password);
+            command.Parameters.AddWithValue("$fullname", user.fullname);
+            command.Parameters.AddWithValue("$createdAt", user.createdAt.ToString("o"));
+            command.Parameters.AddWithValue("$imported", user.imported ? 1 : 0);
+
+            int insertedId = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            return insertedId;
+        }
+
         public User GetByUsername(string username) 
         {
             connection.Open();
@@ -227,8 +255,8 @@ namespace ProcessData
 
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = @"UPDATE users
-                                    SET username = $username
-                                        password = $password
+                                    SET username = $username,
+                                        password = $password,
                                         fullname = $fullname
                                     WHERE id = $userId";
             command.Parameters.AddWithValue("$userId", userId);
@@ -295,8 +323,10 @@ namespace ProcessData
             string password = reader.GetString(2);
             string fullname = reader.GetString(3);
             DateTime createdAt = reader.GetDateTime(4);
+            int imported = reader.GetInt32(5);
 
             User user = new User(id, username, password, fullname, createdAt);
+            user.imported = (imported == 1) ? true : false;
 
             return user;
         }

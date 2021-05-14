@@ -122,6 +122,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
             this.commentContentInput.Text = comment.content;
             this.commentCreatedAtDateField.Text = comment.createdAt.ToShortDateString();
             this.commentUserIdInput.Text = comment.userId.ToString();
+            this.commentPostIdInput.Text = comment.postId.ToString();
         }
 
         public Comment GetComment()
@@ -162,6 +163,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 {
                     return;
                 } 
+
+                changedComment.createdAt = comment.createdAt;
 
                 this.changed = true;
                 this.SetComment(changedComment);

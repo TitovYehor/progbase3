@@ -65,10 +65,20 @@ namespace ProcessData
                 {
                     if (!userRepository.UserExistsById(posts[i].userId))
                     {
-                        posts[i].imported = true;
+                        User user = new User
+                        {
+                            id = posts[i].userId,
+                            username = $"user{posts[i].userId}",
+                            password = $"passuser{posts[i].userId}",
+                            fullname = "",
+                            createdAt = DateTime.Now,
+                            imported = true,
+                        };
+
+                        userRepository.InsertImport(user);
                     }
 
-                    postRepository.Insert(posts[i]);
+                    postRepository.InsertImport(posts[i]);
                 }
             }
 
@@ -78,16 +88,20 @@ namespace ProcessData
                 {
                     if (!userRepository.UserExistsById(comments[i].userId))
                     {
-                        comments[i].imported = true;
+                        User user = new User
+                        {
+                            id = comments[i].userId,
+                            username = $"user{posts[i].userId}",
+                            password = $"passuser{posts[i].userId}",
+                            fullname = "",
+                            createdAt = DateTime.Now,
+                            imported = true,
+                        };
+
+                        userRepository.InsertImport(user);
                     }
 
-                    if (!postRepository.PostExists(comments[i].postId))
-                    {
-                        comments[i].imported = true;
-                        Post post = new Post();
-                    }
-
-                    commentRepository.Insert(comments[i]);
+                    commentRepository.InsertImport(comments[i]);
                 }
             }
 

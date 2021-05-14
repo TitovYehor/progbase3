@@ -337,6 +337,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 {
                     return;
                 }
+
+                changedComment.createdAt = selectedComment.createdAt;
             
                 bool isUpdated = commentsRepository.Update(selectedComment.id, changedComment); 
 
@@ -431,6 +433,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
             if (dialog.changed)
             {
                 Comment changedComment = dialog.GetComment();
+
+                changedComment.createdAt = comment.createdAt;
 
                 bool isUpdated = commentsRepository.Update(comment.id, changedComment); 
 

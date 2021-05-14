@@ -18,9 +18,6 @@ namespace ProcessData
         [XmlIgnore]
         public User author;
 
-        [XmlIgnore]
-        public bool imported = false;
-
 
         public Comment()
         {

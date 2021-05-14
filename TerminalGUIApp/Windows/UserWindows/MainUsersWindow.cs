@@ -337,6 +337,8 @@ namespace TerminalGUIApp.Windows.UserWindows
                 {
                     return;
                 }
+
+                changedUser.createdAt = selectedUser.createdAt;
             
                 bool isUpdated = usersRepository.Update(selectedUser.id, changedUser); 
 
@@ -431,6 +433,8 @@ namespace TerminalGUIApp.Windows.UserWindows
             if (dialog.changed)
             {
                 User changedUser = dialog.GetUser();
+
+                changedUser.createdAt = user.createdAt;
 
                 bool isUpdated = usersRepository.Update(user.id, changedUser); 
 
