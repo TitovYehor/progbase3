@@ -16,12 +16,63 @@ namespace ProcessData
             this.connection = connection;
         }
 
-        // public CommentRepository(SqliteConnection connection)
-        // {
-        //     this.connection = connection;
-        // }
 
+        public int GetSearchPagesCount(int pageSize, string searchValue)
+        {
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
 
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM comments 
+                                    WHERE content LIKE '%' || $searchValue || '%'";
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+
+            int totalFound = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            int totalSearchPages = (int)Math.Ceiling((float)totalFound / (float)pageSize);
+
+            return totalSearchPages;
+        }
+
+        public List<Comment> GetSearchPage(string searchValue, int pageNum, int pageSize)
+        {
+            if (pageNum < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page '{pageNum}' out of range");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = @"SELECT * FROM comments 
+                                    WHERE content LIKE '%' || $searchValue || '%'
+                                    LIMIT $skip,$countOfOut";
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+            command.Parameters.AddWithValue("$skip", (pageNum - 1) * pageSize);
+            command.Parameters.AddWithValue("$countOfOut", pageSize);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Comment> searchPage = ReadComments(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return searchPage;
+        }
         
         public int Insert(Comment comment) 
         {
@@ -82,11 +133,14 @@ namespace ProcessData
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            Comment[] comments = ReadComments(reader);
+            List<Comment> list = ReadComments(reader);
 
             reader.Close();
 
             connection.Close();
+
+            Comment[] comments = new Comment[list.Count];
+            list.CopyTo(comments);
 
             return comments;
         }
@@ -101,11 +155,14 @@ namespace ProcessData
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            Comment[] comments = ReadComments(reader);
+            List<Comment> list = ReadComments(reader);
 
             reader.Close();
 
             connection.Close();
+
+            Comment[] comments = new Comment[list.Count];
+            list.CopyTo(comments);
 
             return comments;
         }
@@ -159,7 +216,7 @@ namespace ProcessData
 
 
 
-        private static Comment[] ReadComments(SqliteDataReader reader)
+        private static List<Comment> ReadComments(SqliteDataReader reader)
         {
             List<Comment> commentsList = new List<Comment>();
 
@@ -169,12 +226,8 @@ namespace ProcessData
 
                 commentsList.Add(comment);
             }
-        
-            Comment[] comments = new Comment[commentsList.Count];
 
-            commentsList.CopyTo(comments);
-
-            return comments;
+            return commentsList;
         }
 
         private static Comment ReadComment(SqliteDataReader reader)

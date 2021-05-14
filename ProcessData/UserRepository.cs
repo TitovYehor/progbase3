@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Data.Sqlite;
+using System.Configuration;
 using System.Collections.Generic;
 
 namespace ProcessData
@@ -75,13 +76,75 @@ namespace ProcessData
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            User[] users = ReadUsers(reader);
+            List<User> list = ReadUsers(reader);
 
             reader.Close();
 
             connection.Close();
 
+            User[] users = new User[list.Count];
+            list.CopyTo(users);
+
             return users;
+        }
+
+        public int GetSearchPagesCount(int pageSize, string searchValue)
+        {
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM users 
+                                    WHERE username LIKE '%' || $searchValue || '%'
+                                    OR fullname LIKE '%' || $searchValue || '%'";
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+
+            int totalFound = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            int totalSearchPages = (int)Math.Ceiling((float)totalFound / (float)pageSize);
+
+            return totalSearchPages;
+        }
+
+        public List<User> GetSearchPage(string searchValue, int pageNum, int pageSize)
+        {
+            if (pageNum < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page '{pageNum}' out of range");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = @"SELECT * FROM users 
+                                    WHERE username LIKE '%' || $searchValue || '%'
+                                    OR fullname LIKE '%' || $searchValue || '%'
+                                    LIMIT $skip,$countOfOut";
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+            command.Parameters.AddWithValue("$skip", (pageNum - 1) * pageSize);
+            command.Parameters.AddWithValue("$countOfOut", pageSize);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<User> searchPage = ReadUsers(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return searchPage;
         }
 
         public int Insert(User user) 
@@ -211,7 +274,7 @@ namespace ProcessData
 
 
 
-        private static User[] ReadUsers(SqliteDataReader reader)
+        private static List<User> ReadUsers(SqliteDataReader reader)
         {
             List<User> usersList = new List<User>();
 
@@ -221,12 +284,8 @@ namespace ProcessData
 
                 usersList.Add(user);
             }
-        
-            User[] users = new User[usersList.Count];
 
-            usersList.CopyTo(users);
-
-            return users;
+            return usersList;
         }
 
         private static User ReadUser(SqliteDataReader reader)

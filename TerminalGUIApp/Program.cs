@@ -10,12 +10,14 @@ namespace TerminalGUIApp
         {
             string databasePath = "../data/database.db";
             UserRepository usersRepository = new UserRepository(databasePath);
+            PostRepository postsRepository = new PostRepository(databasePath);
+            CommentRepository commentsRepository = new CommentRepository(databasePath);
 
             Application.Init();
             Toplevel top = Application.Top;
     
-            MainWindow win = new MainWindow();
-            win.SetRepository(tasksRepository);
+            MainUsersWindow win = new MainUsersWindow();
+            win.SetRepository(usersRepository);
             top.Add(win);
     
             Application.Run();

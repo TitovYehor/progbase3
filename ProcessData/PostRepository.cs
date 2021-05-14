@@ -16,11 +16,6 @@ namespace ProcessData
             this.connection = connection;
         }
 
-        // public PostRepository(SqliteConnection connection)
-        // {
-        //     this.connection = connection;
-        // }
-
 
 
         public Post[] GetAllPosts()
@@ -32,11 +27,14 @@ namespace ProcessData
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            Post[] posts = ReadPosts(reader);
-
+            List<Post> list = ReadPosts(reader);
+            
             reader.Close();
 
             connection.Close();
+
+            Post[] posts = new Post[list.Count];
+            list.CopyTo(posts);
 
             return posts;
         }
@@ -63,29 +61,62 @@ namespace ProcessData
             return isExists;
         }
 
-        // public Post GetById(int id) 
-        // {
-        //     connection.Open();
+        public int GetSearchPagesCount(int pageSize, string searchValue)
+        {
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
 
-        //     SqliteCommand command = connection.CreateCommand();
-        //     command.CommandText = @"SELECT * FROM posts WHERE id = $id";
-        //     command.Parameters.AddWithValue("$id", id);
+            connection.Open();
 
-        //     SqliteDataReader reader = command.ExecuteReader();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM posts 
+                                    WHERE content LIKE '%' || $searchValue || '%'";
+            command.Parameters.AddWithValue("$searchValue", searchValue);
 
-        //     Post post = null;
+            int totalFound = (int)(long)command.ExecuteScalar();
 
-        //     if (reader.Read())
-        //     {
-        //         post = ReadPost(reader);
-        //     }
+            connection.Close();
 
-        //     reader.Close();
+            int totalSearchPages = (int)Math.Ceiling((float)totalFound / (float)pageSize);
 
-        //     connection.Close();
+            return totalSearchPages;
+        }
 
-        //     return post;
-        // }
+        public List<Post> GetSearchPage(string searchValue, int pageNum, int pageSize)
+        {
+            if (pageNum < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page '{pageNum}' out of range");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = @"SELECT * FROM posts 
+                                    WHERE content LIKE '%' || $searchValue || '%'
+                                    LIMIT $skip,$countOfOut";
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+            command.Parameters.AddWithValue("$skip", (pageNum - 1) * pageSize);
+            command.Parameters.AddWithValue("$countOfOut", pageSize);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Post> searchPage = ReadPosts(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return searchPage;
+        }
 
         public int Insert(Post post) 
         {
@@ -150,11 +181,14 @@ namespace ProcessData
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            Post[] posts = ReadPosts(reader);
+            List<Post> list = ReadPosts(reader);
 
             reader.Close();
 
             connection.Close();
+
+            Post[] posts = new Post[list.Count];
+            list.CopyTo(posts);
 
             return posts;
         }
@@ -256,7 +290,7 @@ namespace ProcessData
 
 
 
-        private static Post[] ReadPosts(SqliteDataReader reader)
+        private static List<Post> ReadPosts(SqliteDataReader reader)
         {
             List<Post> postsList = new List<Post>();
 
@@ -266,12 +300,8 @@ namespace ProcessData
 
                 postsList.Add(post);
             }
-        
-            Post[] posts = new Post[postsList.Count];
 
-            postsList.CopyTo(posts);
-
-            return posts;
+            return postsList;
         }
 
         private static Post ReadPost(SqliteDataReader reader)

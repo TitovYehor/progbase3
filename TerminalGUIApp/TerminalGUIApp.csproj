@@ -6,11 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Terminal.Gui" Version="1.0.0" />
+    <ProjectReference Include="..\ProcessData\ProcessData.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProcessData\ProcessData.csproj" />
+    <PackageReference Include="Terminal.Gui" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

@@ -32,5 +32,11 @@ namespace ProcessData
             this.fullname = fullname;
             this.createdAt = createdAt;
         }
+
+
+        public override string ToString()
+        {
+            return $"{id}) username '{username}' - {fullname}";
+        }
     }
 }
