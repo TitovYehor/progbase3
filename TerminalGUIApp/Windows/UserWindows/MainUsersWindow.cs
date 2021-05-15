@@ -147,7 +147,6 @@ namespace TerminalGUIApp.Windows.UserWindows
             {
                 X = Pos.Right(searchLbl),
                 Y = Pos.Top(searchLbl),
-                Width = Dim.Percent(10),
             };
             searchInput = new TextField()
             {

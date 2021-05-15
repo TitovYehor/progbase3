@@ -1,5 +1,6 @@
 using System;
 using System.IO.Compression;
+using System.Collections.Generic;
 
 using ProcessXml;
 
@@ -7,52 +8,81 @@ namespace ProcessData
 {
     public static class ExportAndImportData
     {
-        private static string savePath = "../data/exports";
-        private static string tempSavePath = "../data/exports/temp";
+        //private static string savePath = "../data/exports";
+        //private static string tempSavePath = "../data/exports/temp";
 
         private static string postsFileName = "posts.xml";
         private static string commentsFileName = "comments.xml";
 
 
-        public static bool ExportPostsWithComments(string zipName, Post[] posts, Comment[] comments)
+        public static bool ExportPostsWithComments(string filterValue, string saveDirPath, string zipName, PostRepository postsRepository)
         {
+            Post[] posts = postsRepository.GetFiltredByTextPosts(filterValue);
+            Comment[] comments = GetCommentsFromPostsMass(posts);
+
+            string tempSavePath = $"{saveDirPath}/tempExportSave";
+
             string postsFilePath = $"{tempSavePath}/{postsFileName}";
             string commentsFilePath = $"{tempSavePath}/{commentsFileName}";
             
             try
             {
+                System.IO.Directory.CreateDirectory(tempSavePath);
+
                 XmlSerialization.Serialize<Post[]>(posts, postsFilePath);
 
                 XmlSerialization.Serialize<Comment[]>(comments, commentsFilePath);
 
-                ZipFile.CreateFromDirectory($"{tempSavePath}", $"{savePath}/{zipName}");
+                ZipFile.CreateFromDirectory(tempSavePath, $"{saveDirPath}/{zipName}");
             
                 System.IO.File.Delete(postsFilePath);
                 System.IO.File.Delete(commentsFilePath);
+                System.IO.Directory.Delete(tempSavePath);
             }
             catch
             {
+                if (System.IO.File.Exists(postsFilePath))
+                {
+                    System.IO.File.Delete(postsFilePath);
+                }
+                else if (System.IO.File.Exists(commentsFilePath))
+                {
+                     System.IO.File.Delete(commentsFilePath);
+                }
+                else if (System.IO.Directory.Exists(tempSavePath))
+                {
+                    System.IO.Directory.Delete(tempSavePath);
+                }
+
                 return false;
             }
 
             return true;
         }
 
-        public static bool ImportPostsWithComments(string zipName, UserRepository userRepository, PostRepository postRepository, CommentRepository commentRepository)
+        public static bool ImportPostsWithComments(string zipPath, UserRepository userRepository, PostRepository postRepository, CommentRepository commentRepository)
         {
+            string saveDirPath = GetDirPath(zipPath);
+            string tempSaveDirPath = $"{saveDirPath}/tempImportSave";
+
+            string tempPostsPath = $"{tempSaveDirPath}/{postsFileName}";
+            string tempCommentsPath = $"{tempSaveDirPath}/{commentsFileName}";
+
             Post[] posts = null;
             Comment[] comments = null;
 
             try
             {
-                ZipFile.ExtractToDirectory($"{savePath}/{zipName}", $"{tempSavePath}");
+                System.IO.Directory.CreateDirectory(tempSaveDirPath);
+                ZipFile.ExtractToDirectory(zipPath, tempSaveDirPath);
 
-                XmlSerialization.Deserialize<Post[]>(ref posts, $"{tempSavePath}/{postsFileName}");
+                XmlSerialization.Deserialize<Post[]>(ref posts, tempPostsPath);
 
-                XmlSerialization.Deserialize<Comment[]>(ref comments, $"{tempSavePath}/{commentsFileName}");
+                XmlSerialization.Deserialize<Comment[]>(ref comments, tempCommentsPath);
 
-                System.IO.File.Delete($"{tempSavePath}/{postsFileName}");
-                System.IO.File.Delete($"{tempSavePath}/{commentsFileName}");
+                System.IO.File.Delete(tempPostsPath);
+                System.IO.File.Delete(tempCommentsPath);
+                System.IO.Directory.Delete(tempSaveDirPath);
             }
             catch
             {
@@ -106,6 +136,42 @@ namespace ProcessData
             }
 
             return true;
+        }
+    
+
+        private static Comment[] GetCommentsFromPostsMass(Post[] posts)
+        {
+            List<Comment> list = new List<Comment>();
+
+            if (posts.Length == 0)
+            {
+                return null;
+            }
+            else
+            {
+                for (int i = 0; i < posts.Length; i++)
+                {
+                    for (int j = 0; j < posts[i].comments.Length; j++)
+                    {
+                        list.Add(posts[i].comments[j]);
+                    }
+                }
+
+                Comment[] comments = new Comment[list.Count];
+                list.CopyTo(comments);
+
+                return comments;
+            }
+        }
+
+
+        private static string GetDirPath(string fullPath)
+        {
+            string[] fullPathMass = fullPath.Split('/');
+
+            string dirPath = String.Join('/', fullPathMass, 0, fullPathMass.Length - 1);
+
+            return dirPath;
         }
     }
 }

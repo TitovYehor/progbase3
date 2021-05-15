@@ -8,7 +8,7 @@ using ProcessData;
 
 namespace ConsoleApp
 {
-    public class ArgumentsProcessor
+    public static class ArgumentsProcessor
     {
         static string[] GetUserEnter()
         {
@@ -170,12 +170,12 @@ namespace ConsoleApp
 
         static void ProcessExport(string[] command, PostRepository postRep, CommentRepository commentRep)
         {
-            if (command.Length < 3)
+            if (command.Length < 4)
             {
-                throw new ArgumentException("Wrong command input. Command 'export' must have a form: export {zipName} {searchValue}");
+                throw new ArgumentException("Wrong command input. Command 'export' must have a form: export {zipName} {exportDirectoryPath} {searchValue}");
             }
 
-            string searchValue = String.Join(' ', command, 2, command.Length - 2);
+            string searchValue = String.Join(' ', command, 3, command.Length - 3);
 
             Post[] searchPosts = postRep.GetFiltredByTextPosts(searchValue);
 
@@ -198,13 +198,13 @@ namespace ConsoleApp
                 Comment[] comments = new Comment[list.Count];
                 list.CopyTo(comments);
 
-                if (ExportAndImportData.ExportPostsWithComments(command[1], searchPosts, comments))
+                if (ExportAndImportData.ExportPostsWithComments(searchValue, command[2], command[1], postRep))
                 {
-                    WriteLine("Data exported");
+                    WriteLine($"Data exported to {command[2]}");
                 }
                 else
                 {
-                    WriteLine("Data not imported");
+                    WriteLine("Data not exported");
                 }
             }
         }
@@ -213,7 +213,7 @@ namespace ConsoleApp
         {
             if (command.Length != 2)
             {
-                throw new ArgumentException("Wrong command input. Command 'import' must have a form: import {zipName}");
+                throw new ArgumentException("Wrong command input. Command 'import' must have a form: import {zipPath}");
             }
 
             if (ExportAndImportData.ImportPostsWithComments(command[1], userRep, postRep, commentRep))

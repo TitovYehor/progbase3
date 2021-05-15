@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Terminal.Gui;
 
+using TerminalGUIApp.Windows.ExportAndImportWindows;
+
 using ProcessData;
 
 namespace TerminalGUIApp.Windows.PostWindows
@@ -147,7 +149,6 @@ namespace TerminalGUIApp.Windows.PostWindows
             {
                 X = Pos.Right(searchLbl),
                 Y = Pos.Top(searchLbl),
-                Width = Dim.Percent(10),
             };
             searchInput = new TextField()
             {
@@ -157,6 +158,36 @@ namespace TerminalGUIApp.Windows.PostWindows
             };
             searchInput.TextChanged += OnSearchChange;
             this.Add(searchLbl, chooseSearchColumn, searchInput);
+
+            // Label exportLbl = new Label("Export data:")
+            // {
+            //     X = Pos.Percent(45),
+            //     Y = Pos.Top(createNewPostBtn) + Pos.Percent(10),
+            //     AutoSize = true,
+            // };
+            // Button exportBtn = new Button("Export")
+            // {
+            //     X = Pos.Left(exportLbl) + Pos.Percent(5),
+            //     Y = Pos.Top(exportLbl),
+            //     AutoSize = true,
+            // };
+            // exportBtn.Clicked += OnExportOpen;
+            // this.Add(exportLbl, exportBtn);
+
+            // Label importLbl = new Label("Import data:")
+            // {
+            //     X = Pos.Percent(45),
+            //     Y = Pos.Top(exportLbl) + Pos.Percent(5),
+            //     AutoSize = true,
+            // };
+            // Button importBtn = new Button("Import")
+            // {
+            //     X = Pos.Left(importLbl) + Pos.Percent(5),
+            //     Y = Pos.Top(importLbl),
+            //     AutoSize = true,
+            // };
+            // importBtn.Clicked += OnImportOpen;
+            // this.Add(importLbl, importBtn);
         }
 
 
@@ -448,5 +479,19 @@ namespace TerminalGUIApp.Windows.PostWindows
                 }
             }
         }
+    
+        // private void OnImportOpen()
+        // {
+        //     ImportWindow win = new ImportWindow();
+
+        //     Application.Run(win);
+        // }
+
+        // private void OnExportOpen()
+        // {
+        //     ExportWindow win = new ExportWindow();
+
+        //     Application.Run(win);
+        // }
     }
 }

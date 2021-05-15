@@ -3,6 +3,7 @@ using Terminal.Gui;
 using TerminalGUIApp.Windows.UserWindows;
 using TerminalGUIApp.Windows.PostWindows;
 using TerminalGUIApp.Windows.CommentWindows;
+using TerminalGUIApp.Windows.ExportAndImportWindows;
 
 using ProcessData;
 
@@ -90,6 +91,36 @@ namespace TerminalGUIApp.Windows.MainWindow
             };
             commentsBtn.Clicked += OnOpenComments;
             this.Add(commentsLbl, commentsBtn);
+
+            Label exportLbl = new Label("Export data:")
+            {
+                X = Pos.Percent(45),
+                Y = Pos.Bottom(postsBtn) + Pos.Percent(10),
+                AutoSize = true,
+            };
+            Button exportBtn = new Button("Export")
+            {
+                X = Pos.Right(exportLbl) + Pos.Percent(1),
+                Y = Pos.Top(exportLbl),
+                AutoSize = true,
+            };
+            exportBtn.Clicked += OnExportOpen;
+            this.Add(exportLbl, exportBtn);
+
+            Label importLbl = new Label("Import data:")
+            {
+                X = Pos.Left(exportLbl),
+                Y = Pos.Top(exportLbl) + Pos.Percent(5),
+                AutoSize = true,
+            };
+            Button importBtn = new Button("Import")
+            {
+                X = Pos.Right(importLbl) + Pos.Percent(1),
+                Y = Pos.Top(importLbl),
+                AutoSize = true,
+            };
+            importBtn.Clicked += OnImportOpen;
+            this.Add(importLbl, importBtn);
         }
 
         public void SetRepositories(UserRepository usersRepository, PostRepository postsRepository, CommentRepository commentsRepository)
@@ -138,6 +169,23 @@ namespace TerminalGUIApp.Windows.MainWindow
         {
             MainCommentsWindow win = new MainCommentsWindow();
             win.SetRepository(commentsRepository);
+
+            Application.Run(win);
+        }
+    
+    
+        private void OnImportOpen()
+        {
+            ImportWindow win = new ImportWindow();
+            win.SetRepositories(usersRepository, postsRepository, commentsRepository);
+
+            Application.Run(win);
+        }
+
+        private void OnExportOpen()
+        {
+            ExportWindow win = new ExportWindow();
+            win.SetRepositories(postsRepository);
 
             Application.Run(win);
         }
