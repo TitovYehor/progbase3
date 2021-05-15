@@ -110,6 +110,8 @@ namespace GenerateData
 
                 GenerateComments(command, commentRep, service);
             } 
+
+            WriteLine($"{command[2]} {generateCategory} successfully generated");
         }
     
         private static void ValidateGenerateCategory(string category)
