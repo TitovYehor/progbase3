@@ -3,11 +3,17 @@ using System.Text;
 
 namespace ProcessData
 {
-    public static class Authentication
+    public class Authentication
     {
-        private static UserRepository userRepository;
+        private UserRepository userRepository;
 
-        public static bool Register(User user)
+        public Authentication(UserRepository userRepository)
+        {
+            this.userRepository = userRepository;
+        }
+
+
+        public bool Register(User user)
         {
             if (userRepository.UserExists(user.username))
             {
@@ -23,7 +29,7 @@ namespace ProcessData
             return true;
         }    
 
-        public static User Login(string username, string password)
+        public User Login(string username, string password)
         {
             if (userRepository.UserExists(username))
             {
@@ -41,7 +47,7 @@ namespace ProcessData
         }
 
 
-        private static string GetHashPassword(string password)
+        private string GetHashPassword(string password)
         {
             SHA256 sha256Hash = SHA256.Create();
 
@@ -52,7 +58,7 @@ namespace ProcessData
             return hashPassword;
         }
 
-        private static string GetHash(HashAlgorithm hashAlgorithm, string input)
+        private string GetHash(HashAlgorithm hashAlgorithm, string input)
         { 
             // Convert the input string to a byte array and compute the hash.
             byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
