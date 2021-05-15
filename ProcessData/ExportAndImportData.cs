@@ -8,9 +8,6 @@ namespace ProcessData
 {
     public static class ExportAndImportData
     {
-        //private static string savePath = "../data/exports";
-        //private static string tempSavePath = "../data/exports/temp";
-
         private static string postsFileName = "posts.xml";
         private static string commentsFileName = "comments.xml";
 
@@ -86,6 +83,19 @@ namespace ProcessData
             }
             catch
             {
+                if (System.IO.File.Exists(tempPostsPath))
+                {
+                    System.IO.File.Delete(tempPostsPath);
+                }
+                else if (System.IO.File.Exists(tempCommentsPath))
+                {
+                     System.IO.File.Delete(tempCommentsPath);
+                }
+                else if (System.IO.Directory.Exists(tempSaveDirPath))
+                {
+                    System.IO.Directory.Delete(tempSaveDirPath);
+                }
+
                 return false;
             }
 
