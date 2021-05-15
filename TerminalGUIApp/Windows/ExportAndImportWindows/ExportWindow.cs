@@ -13,10 +13,28 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
 
         private PostRepository postsRepository;
 
+        private MenuBar mainMenu;
+
 
         public ExportWindow()
         {
             directoryPathLbl = new Label("../data/exports");
+
+            mainMenu = new MenuBar(
+                new MenuBarItem[] 
+                {
+                    new MenuBarItem ("_Export", new MenuItem[]
+                    {
+                        new MenuItem("_Export", "", OnExport),
+                        new MenuItem("_Quit", "", OnQuit)
+                    })
+                })
+            {
+                Width = Dim.Percent(5),
+            };
+            this.Add(mainMenu);
+
+
 
             Label searchLbl = new Label("Enter value to filter posts: ")
             {
@@ -88,6 +106,13 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
                 directoryPathLbl.Text = dirPath;
             }
         }
+
+
+        private void OnQuit()
+        {
+            Application.RequestStop();
+        }
+
 
         private void OnExport()
         {

@@ -18,7 +18,6 @@ namespace TerminalGUIApp.Windows.UserWindows
         private UserRepository usersRepository;
 
         private MenuBar mainMenu;
-        private MenuBar helpMenu;
 
         private Label pageLbl;
         private Label totalPagesLbl;
@@ -42,7 +41,7 @@ namespace TerminalGUIApp.Windows.UserWindows
             mainMenu = new MenuBar(
                 new MenuBarItem[] 
                 {
-                    new MenuBarItem ("_File", new MenuItem[]
+                    new MenuBarItem ("_Users", new MenuItem[]
                     {
                         new MenuItem("_New...", "", OnNew),
                         new MenuItem("_Quit", "", OnQuit)
@@ -51,22 +50,7 @@ namespace TerminalGUIApp.Windows.UserWindows
             {
                 Width = Dim.Percent(5),
             };
-            mainMenu.MenuOpening += OnAllMenusClose;
-            helpMenu = new MenuBar(
-                new MenuBarItem[]
-                {
-                    new MenuBarItem("_Help", new MenuItem[]
-                    {
-                        new MenuItem("_About", "", OnAbout)
-                    })
-                }
-            )
-            {
-                X = Pos.Left(mainMenu),
-                Y = Pos.Bottom(mainMenu) + Pos.Percent(1),
-                Width = Dim.Percent(5)
-            };
-            this.Add(mainMenu, helpMenu);
+            this.Add(mainMenu);
 
 
             allUsersListView = new ListView(new List<User>())
@@ -223,19 +207,6 @@ namespace TerminalGUIApp.Windows.UserWindows
         private void OnQuit()
         {
             Application.RequestStop();
-        }
-        private void OnAbout()
-        {
-            MessageBox.Query("About program", "Course work project. Made by a student of KP-01 Titov Egor, according to the lectures of the teacher Hadyniak Ruslan Anatoliiovych.", "Very interesting. Ok");
-        }
-        private void OnAllMenusClose()
-        {
-            MenuBar[] menus = new MenuBar[]{mainMenu, helpMenu};
-
-            for (int i = 0; i < menus.Length; i++)
-            {
-                menus[i].CloseMenu();
-            }
         }
 
 

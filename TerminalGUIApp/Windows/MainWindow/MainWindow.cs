@@ -26,7 +26,9 @@ namespace TerminalGUIApp.Windows.MainWindow
                 {
                     new MenuBarItem ("_File", new MenuItem[]
                     {
-                        new MenuItem("_Quit", "", OnQuit)
+                        new MenuItem("_Export...", "", OnExportOpen),
+                        new MenuItem("_Import...", "", OnImportOpen),
+                        new MenuItem("_Quit", "", OnQuit),
                     })
                 })
             {
@@ -137,7 +139,7 @@ namespace TerminalGUIApp.Windows.MainWindow
         }
         private void OnAbout()
         {
-            MessageBox.Query("About program", "Course work project. Made by a student of KP-01 Titov Egor, according to the lectures of the teacher Hadyniak Ruslan Anatoliiovych.", "Very interesting. Ok");
+            MessageBox.Query("About program", "Course work project. Made by a student of KP-01 Titov Egor, according to the lectures of the teacher Hadyniak Ruslan Anatoliiovych.", "Very informative. Ok");
         }
         private void OnAllMenusClose()
         {

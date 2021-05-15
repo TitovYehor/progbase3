@@ -13,9 +13,25 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
 
         private Label filePathLbl = new Label("../data/exports");
 
+        private MenuBar mainMenu;
+
 
         public ImportWindow()
         {
+            mainMenu = new MenuBar(
+                new MenuBarItem[] 
+                {
+                    new MenuBarItem ("_Import", new MenuItem[]
+                    {
+                        new MenuItem("_Import", "", OnImport),
+                        new MenuItem("_Quit", "", OnQuit)
+                    })
+                })
+            {
+                Width = Dim.Percent(5),
+            };
+            this.Add(mainMenu);
+
             Label choosePathLbl = new Label("Choose directory path to export: ")
             {
                 X = Pos.Percent(10),
@@ -53,7 +69,6 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
             dialog.CanChooseDirectories = false;
             dialog.CanChooseFiles = true;
             dialog.DirectoryPath = filePathLbl.Text;
-            dialog.AllowedFileTypes = new string[]{".zip"};
 
             Application.Run(dialog);
 
@@ -64,6 +79,13 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
             }
         }
     
+
+        private void OnQuit()
+        {
+            Application.RequestStop();
+        }
+
+
         private void OnImport()
         {
             if (ExportAndImportData.ImportPostsWithComments(filePathLbl.Text.ToString(), usersRepository, postsRepository, commentsRepository))

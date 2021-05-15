@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using Terminal.Gui;
 
-using TerminalGUIApp.Windows.ExportAndImportWindows;
-
 using ProcessData;
 
 namespace TerminalGUIApp.Windows.PostWindows
@@ -20,7 +18,6 @@ namespace TerminalGUIApp.Windows.PostWindows
         private PostRepository postsRepository;
 
         private MenuBar mainMenu;
-        private MenuBar helpMenu;
 
         private Label pageLbl;
         private Label totalPagesLbl;
@@ -44,7 +41,7 @@ namespace TerminalGUIApp.Windows.PostWindows
             mainMenu = new MenuBar(
                 new MenuBarItem[] 
                 {
-                    new MenuBarItem ("_File", new MenuItem[]
+                    new MenuBarItem ("_Posts", new MenuItem[]
                     {
                         new MenuItem("_New...", "", OnNew),
                         new MenuItem("_Quit", "", OnQuit)
@@ -53,22 +50,7 @@ namespace TerminalGUIApp.Windows.PostWindows
             {
                 Width = Dim.Percent(5),
             };
-            mainMenu.MenuOpening += OnAllMenusClose;
-            helpMenu = new MenuBar(
-                new MenuBarItem[]
-                {
-                    new MenuBarItem("_Help", new MenuItem[]
-                    {
-                        new MenuItem("_About", "", OnAbout)
-                    })
-                }
-            )
-            {
-                X = Pos.Left(mainMenu),
-                Y = Pos.Bottom(mainMenu) + Pos.Percent(1),
-                Width = Dim.Percent(5)
-            };
-            this.Add(mainMenu, helpMenu);
+            this.Add(mainMenu);
 
 
             allPostsListView = new ListView(new List<Post>())
@@ -158,36 +140,6 @@ namespace TerminalGUIApp.Windows.PostWindows
             };
             searchInput.TextChanged += OnSearchChange;
             this.Add(searchLbl, chooseSearchColumn, searchInput);
-
-            // Label exportLbl = new Label("Export data:")
-            // {
-            //     X = Pos.Percent(45),
-            //     Y = Pos.Top(createNewPostBtn) + Pos.Percent(10),
-            //     AutoSize = true,
-            // };
-            // Button exportBtn = new Button("Export")
-            // {
-            //     X = Pos.Left(exportLbl) + Pos.Percent(5),
-            //     Y = Pos.Top(exportLbl),
-            //     AutoSize = true,
-            // };
-            // exportBtn.Clicked += OnExportOpen;
-            // this.Add(exportLbl, exportBtn);
-
-            // Label importLbl = new Label("Import data:")
-            // {
-            //     X = Pos.Percent(45),
-            //     Y = Pos.Top(exportLbl) + Pos.Percent(5),
-            //     AutoSize = true,
-            // };
-            // Button importBtn = new Button("Import")
-            // {
-            //     X = Pos.Left(importLbl) + Pos.Percent(5),
-            //     Y = Pos.Top(importLbl),
-            //     AutoSize = true,
-            // };
-            // importBtn.Clicked += OnImportOpen;
-            // this.Add(importLbl, importBtn);
         }
 
 
@@ -255,19 +207,6 @@ namespace TerminalGUIApp.Windows.PostWindows
         private void OnQuit()
         {
             Application.RequestStop();
-        }
-        private void OnAbout()
-        {
-            MessageBox.Query("About program", "Course work project. Made by a student of KP-01 Titov Egor, according to the lectures of the teacher Hadyniak Ruslan Anatoliiovych.", "Very interesting. Ok");
-        }
-        private void OnAllMenusClose()
-        {
-            MenuBar[] menus = new MenuBar[]{mainMenu, helpMenu};
-
-            for (int i = 0; i < menus.Length; i++)
-            {
-                menus[i].CloseMenu();
-            }
         }
 
 
@@ -479,19 +418,5 @@ namespace TerminalGUIApp.Windows.PostWindows
                 }
             }
         }
-    
-        // private void OnImportOpen()
-        // {
-        //     ImportWindow win = new ImportWindow();
-
-        //     Application.Run(win);
-        // }
-
-        // private void OnExportOpen()
-        // {
-        //     ExportWindow win = new ExportWindow();
-
-        //     Application.Run(win);
-        // }
     }
 }
