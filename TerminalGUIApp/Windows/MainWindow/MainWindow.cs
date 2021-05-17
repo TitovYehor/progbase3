@@ -245,6 +245,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             top.Add(win);
             Application.Run(win);   
             top.Add(this);
+            this.SetFocus();
         }
         private void OnOpenPosts()
         {
@@ -256,6 +257,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             top.Add(win);
             Application.Run(win);
             top.Add(this);
+            this.SetFocus();
         }
         private void OnOpenComments()
         {
@@ -267,6 +269,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             top.Add(win);
             Application.Run(win);
             top.Add(this);
+            this.SetFocus();
         }
     
     
@@ -280,6 +283,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             top.Add(win);
             Application.Run(win);
             top.Add(this);
+            this.SetFocus();
         }
         private void OnExportOpen()
         {
@@ -291,6 +295,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             top.Add(win);
             Application.Run(win);
             top.Add(this);
+            this.SetFocus();
         }
     
     
