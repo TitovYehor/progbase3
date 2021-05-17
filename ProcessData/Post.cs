@@ -29,7 +29,7 @@ namespace ProcessData
             this.comments = new Comment[0];
         }
 
-        public Post(int id, string content, DateTime createdAt, int userId, int pinComment)
+        public Post(int id, string content, DateTime createdAt, int userId, int? pinComment)
         {
             this.id = id;
             this.content = content;

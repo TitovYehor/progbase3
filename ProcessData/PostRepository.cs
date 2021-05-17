@@ -217,13 +217,25 @@ namespace ProcessData
             connection.Open();  
 
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = @"UPDATE posts
+
+            if (post.pinComment == null)
+            {
+                command.CommandText = @"UPDATE posts
+                                    SET content = $content
+                                    WHERE id = $postId";
+                command.Parameters.AddWithValue("$postId", postId);
+                command.Parameters.AddWithValue("$content", post.content);
+            }
+            else
+            {
+                command.CommandText = @"UPDATE posts
                                     SET content = $content,
                                         pinned_comment = $pinComment
                                     WHERE id = $postId";
-            command.Parameters.AddWithValue("$postId", postId);
-            command.Parameters.AddWithValue("$content", post.content);
-            command.Parameters.AddWithValue("$pinComment", post.pinComment);
+                command.Parameters.AddWithValue("$postId", postId);
+                command.Parameters.AddWithValue("$content", post.content);
+                command.Parameters.AddWithValue("$pinComment", post.pinComment);
+            }
 
             int nChanged = command.ExecuteNonQuery();
 
@@ -331,7 +343,12 @@ namespace ProcessData
             string content = reader.GetString(1);
             DateTime createdAt = reader.GetDateTime(2);
             int userId = reader.GetInt32(3);
-            int pinComment = reader.GetInt32(4);
+            int? pinComment = null;
+            if (!reader.IsDBNull(4))
+            {
+                pinComment = reader.GetInt32(4);
+            }
+            
 
             Post post = new Post(postId, content, createdAt, userId, pinComment);
 
