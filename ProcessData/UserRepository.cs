@@ -16,11 +16,6 @@ namespace ProcessData
             this.connection = connection;
         }
 
-        // public UserRepository(SqliteConnection connection)
-        // {
-        //     this.connection = connection;
-        // }
-
 
 
         public bool UserExists(string username)
@@ -86,6 +81,27 @@ namespace ProcessData
             list.CopyTo(users);
 
             return users;
+        }
+
+        public int[] GetAllUsersIds()
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT id FROM users";
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<int> idsList = GetListOfIds(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            int[] ids = new int[idsList.Count];
+            idsList.CopyTo(ids);
+
+            return ids;
         }
 
         public int GetSearchPagesCount(int pageSize, string searchValue)
@@ -155,8 +171,8 @@ namespace ProcessData
 
             command.CommandText = 
             @"
-                INSERT INTO users (username, password, fullname, createdAt) 
-                VALUES ($username, $password, $fullname, $createdAt);
+                INSERT INTO users (username, password, fullname, createdAt, role) 
+                VALUES ($username, $password, $fullname, $createdAt, $role);
 
                 SELECT last_insert_rowid();
             ";
@@ -165,6 +181,7 @@ namespace ProcessData
             command.Parameters.AddWithValue("$password", user.password);
             command.Parameters.AddWithValue("$fullname", user.fullname);
             command.Parameters.AddWithValue("$createdAt", user.createdAt.ToString("o"));
+            command.Parameters.AddWithValue("$role", user.role);
 
             int insertedId = (int)(long)command.ExecuteScalar();
 
@@ -181,8 +198,8 @@ namespace ProcessData
 
             command.CommandText = 
             @"
-                INSERT INTO users (id, username, password, fullname, createdAt, imported) 
-                VALUES ($id, $username, $password, $fullname, $createdAt, $imported);
+                INSERT INTO users (id, username, password, fullname, createdAt, imported, role) 
+                VALUES ($id, $username, $password, $fullname, $createdAt, $imported, $role);
 
                 SELECT last_insert_rowid();
             ";
@@ -193,6 +210,7 @@ namespace ProcessData
             command.Parameters.AddWithValue("$fullname", user.fullname);
             command.Parameters.AddWithValue("$createdAt", user.createdAt.ToString("o"));
             command.Parameters.AddWithValue("$imported", user.imported ? 1 : 0);
+            command.Parameters.AddWithValue("$role", user.role);
 
             int insertedId = (int)(long)command.ExecuteScalar();
 
@@ -257,12 +275,14 @@ namespace ProcessData
             command.CommandText = @"UPDATE users
                                     SET username = $username,
                                         password = $password,
-                                        fullname = $fullname
+                                        fullname = $fullname,
+                                        role = $role
                                     WHERE id = $userId";
             command.Parameters.AddWithValue("$userId", userId);
             command.Parameters.AddWithValue("$username", user.username);
             command.Parameters.AddWithValue("$password", user.password);
             command.Parameters.AddWithValue("$fullname", user.fullname);
+            command.Parameters.AddWithValue("$role", user.role);
 
             int nChanged = command.ExecuteNonQuery();
 
@@ -324,11 +344,24 @@ namespace ProcessData
             string fullname = reader.GetString(3);
             DateTime createdAt = reader.GetDateTime(4);
             int imported = reader.GetInt32(5);
+            string role = reader.GetString(6);
 
-            User user = new User(id, username, password, fullname, createdAt);
+            User user = new User(id, username, password, fullname, createdAt, role);
             user.imported = (imported == 1) ? true : false;
 
             return user;
+        }
+    
+        private static List<int> GetListOfIds(SqliteDataReader reader)
+        {
+            List<int> list = new List<int>();
+
+            while (reader.Read())
+            {
+                list.Add(reader.GetInt32(0));
+            } 
+
+            return list;
         }
     }
 }

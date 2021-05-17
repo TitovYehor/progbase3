@@ -73,7 +73,28 @@ namespace ProcessData
 
             return searchPage;
         }
-        
+
+        public int[] GetAllCommentsIds()
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT id FROM comments";
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<int> idsList = GetListOfIds(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            int[] ids = new int[idsList.Count];
+            idsList.CopyTo(ids);
+
+            return ids;
+        }
+
         public int Insert(Comment comment) 
         {
             connection.Open();
@@ -267,6 +288,18 @@ namespace ProcessData
             Comment comment = new Comment(commentId, content, createdAt, authorId, postId);
 
             return comment;
+        }
+    
+        private static List<int> GetListOfIds(SqliteDataReader reader)
+        {
+            List<int> list = new List<int>();
+
+            while (reader.Read())
+            {
+                list.Add(reader.GetInt32(0));
+            } 
+
+            return list;
         }
     }
 }

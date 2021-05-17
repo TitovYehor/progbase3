@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace ProcessData
 {
@@ -21,19 +20,22 @@ namespace ProcessData
 
         public bool imported = false;
 
+        public string role = "user";
+
 
         public User()
         {
             this.createdAt = DateTime.Now;
         }
 
-        public User(int id, string username, string password, string fullname, DateTime createdAt)
+        public User(int id, string username, string password, string fullname, DateTime createdAt, string role)
         {
             this.id = id;
             this.username = username;
             this.password = password;
             this.fullname = fullname;
             this.createdAt = createdAt;
+            this.role = role;
         }
 
 

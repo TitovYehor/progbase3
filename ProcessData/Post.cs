@@ -19,6 +19,8 @@ namespace ProcessData
         [XmlIgnore]
         public User author;
 
+        public int? pinComment;
+
 
         public Post()
         {
@@ -27,12 +29,13 @@ namespace ProcessData
             this.comments = new Comment[0];
         }
 
-        public Post(int id, string content, DateTime createdAt, int userId)
+        public Post(int id, string content, DateTime createdAt, int userId, int pinComment)
         {
             this.id = id;
             this.content = content;
             this.createdAt = createdAt;
             this.userId = userId;
+            this.pinComment = pinComment;
 
             this.comments = new Comment[0];
         }

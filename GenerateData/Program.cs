@@ -82,7 +82,7 @@ namespace GenerateData
 
         static void ProcessGenerate(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep, Service service)
         {
-            if (command.Length != 4)
+            if (command.Length < 4)
             {
                 throw new ArgumentException("Command 'generate' must have a form: generate {category} {count of generated} " +
                 "{timeIntervals (in format (XX(month)/XX(day)/XXXX(year)) with separator 'To': XX/XX/XXXXToXX/XX/XXXX)}");
@@ -102,13 +102,13 @@ namespace GenerateData
             {
                 ValidateUsers(userRep);
 
-                GeneratePosts(command, postRep, service);
+                GeneratePosts(command, userRep, postRep, commentRep);
             }
             else if (generateCategory == "comments")
             {
                 ValidateUsers(userRep);
 
-                GenerateComments(command, commentRep, service);
+                GenerateComments(command, userRep, postRep, commentRep);
             } 
 
             WriteLine($"{command[2]} {generateCategory} successfully generated");
@@ -153,6 +153,10 @@ namespace GenerateData
         
         private static void GenerateUsers(string[] command, UserRepository userRep)
         {
+            ValidateUsersRole(command[4]);
+
+            string usersRole = command[4];
+
             int generatedCount = int.Parse(command[2]);
 
             DateTime[] datesInterval = ParseDateIntervals(command[3]);
@@ -179,6 +183,8 @@ namespace GenerateData
 
                 newUser.createdAt = GenerateRandomDate(datesInterval);
 
+                newUser.role = usersRole;
+
                 if (!authentication.Register(newUser))
                 {
                     i--;
@@ -187,17 +193,34 @@ namespace GenerateData
             }
         }
 
-        private static void GeneratePosts(string[] command, PostRepository postRep, Service service)
+        private static void ValidateUsersRole(string enteredRole)
+        {
+            string[] roles = new string[]{"user", "moderator", "admin"};
+
+            for (int i = 0; i < roles.Length; i++)
+            {
+                if (enteredRole == roles[i])
+                {
+                    return;
+                }
+            }
+
+            throw new ArgumentException($"Invalid entered role - '{enteredRole}' ('help' to help)");
+                
+        }
+
+        private static void GeneratePosts(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep)
         {
             int generatedCount = int.Parse(command[2]);
 
             DateTime[] datesInterval = ParseDateIntervals(command[3]);
 
             string filePath = "../data/generator/posts.txt";
-
             string[] posts = GetRowsDataFromFile(filePath);
 
-            int[] usersIds = service.GetAllUsersId();
+            int[] usersIds = userRep.GetAllUsersIds();
+
+            int[] commentsIds = commentRep.GetAllCommentsIds();
 
             ///////////////////////////////////////
         
@@ -215,7 +238,7 @@ namespace GenerateData
             }
         }
 
-        private static void GenerateComments(string[] command, CommentRepository commentRep, Service service)
+        private static void GenerateComments(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep)
         {
             int generatedCount = int.Parse(command[2]);
 
@@ -225,9 +248,9 @@ namespace GenerateData
 
             string[] comments = GetRowsDataFromFile(filePath);
 
-            int[] usersIds = service.GetAllUsersId();
+            int[] usersIds = userRep.GetAllUsersIds();
 
-            int[] postsIds = service.GetAllPostsId();
+            int[] postsIds = postRep.GetAllPostsIds();
 
             ///////////////////////////////////////
         
@@ -303,7 +326,6 @@ namespace GenerateData
 
             return password;
         }
-
 
 
         private static DateTime[] ParseDateIntervals(string dateIntervals)

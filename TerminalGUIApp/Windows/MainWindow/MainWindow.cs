@@ -4,6 +4,7 @@ using TerminalGUIApp.Windows.UserWindows;
 using TerminalGUIApp.Windows.PostWindows;
 using TerminalGUIApp.Windows.CommentWindows;
 using TerminalGUIApp.Windows.ExportAndImportWindows;
+using TerminalGUIApp.Windows.AuthenticationDialogs;
 
 using ProcessData;
 
@@ -11,6 +12,8 @@ namespace TerminalGUIApp.Windows.MainWindow
 {
     public class MainWindow : Window
     {
+        private User currentUser;
+
         private UserRepository usersRepository; 
         private PostRepository postsRepository;
         private CommentRepository commentsRepository;
@@ -18,7 +21,23 @@ namespace TerminalGUIApp.Windows.MainWindow
         private MenuBar mainMenu;
         private MenuBar helpMenu;
 
-    
+        private TextField currUserName;
+
+        private Label usersLbl;
+        private Button usersBtn;
+        private Label postsLbl;
+        private Button postsBtn;
+        private Label commentsLbl;
+        private Button commentsBtn;
+        private Label exportLbl;
+        private Button exportBtn;
+        private Label importLbl;
+        private Button importBtn;
+        private Button registrationBtn;
+        private Button loginBtn;
+        private Button logOutBtn;
+
+
         public MainWindow()
         {
             mainMenu = new MenuBar(
@@ -26,8 +45,14 @@ namespace TerminalGUIApp.Windows.MainWindow
                 {
                     new MenuBarItem ("_File", new MenuItem[]
                     {
-                        new MenuItem("_Export...", "", OnExportOpen),
-                        new MenuItem("_Import...", "", OnImportOpen),
+                        new MenuItem("_Export...", "", OnExportOpen)
+                        {
+                            CanExecute = CanBeExecuted,
+                        },
+                        new MenuItem("_Import...", "", OnImportOpen)
+                        {
+                            CanExecute = CanBeExecuted,
+                        },
                         new MenuItem("_Quit", "", OnQuit),
                     })
                 })
@@ -52,77 +77,126 @@ namespace TerminalGUIApp.Windows.MainWindow
             this.Add(mainMenu, helpMenu);
 
 
-            Label usersLbl = new Label("Users Window")
+            usersLbl = new Label("Users Window")
             {
-                X = Pos.Percent(25),
+                X = Pos.Center() - Pos.Percent(30),
                 Y = Pos.Percent(33),
+                Visible = false,
             };
-            Button usersBtn = new Button("Open Users Window")
+            usersBtn = new Button("Open Users Window")
             {
                 X = Pos.Left(usersLbl) - 5,
                 Y = Pos.Top(usersLbl) + Pos.Percent(10),
                 AutoSize = true,
+                Visible = false,
             };
             usersBtn.Clicked += OnOpenUsers;
             this.Add(usersLbl, usersBtn);
 
-            Label postsLbl = new Label("Posts Window")
+            postsLbl = new Label("Posts Window")
             {
-                X = Pos.Percent(50),
+                X = Pos.Center(),
                 Y = Pos.Top(usersLbl),
+                Visible = false,
             };
-            Button postsBtn = new Button("Open Posts Window")
+            postsBtn = new Button("Open Posts Window")
             {
-                X = Pos.Left(postsLbl) - 5,
+                X = Pos.Center(),
                 Y = Pos.Top(usersBtn),
                 AutoSize = true,
+                Visible = false,
             };
             postsBtn.Clicked += OnOpenPosts;
             this.Add(postsLbl, postsBtn);
 
-            Label commentsLbl = new Label("Comments Window")
+            commentsLbl = new Label("Comments Window")
             {
-                X = Pos.Percent(75),
+                X = Pos.Center() + Pos.Percent(30),
                 Y = Pos.Top(usersLbl),
+                Visible = false,
             };
-            Button commentsBtn = new Button("Open Comments Window")
+            commentsBtn = new Button("Open Comments Window")
             {
                 X = Pos.Left(commentsLbl) - 5,
                 Y = Pos.Top(usersBtn),
                 AutoSize = true,
+                Visible = false,
             };
             commentsBtn.Clicked += OnOpenComments;
             this.Add(commentsLbl, commentsBtn);
 
-            Label exportLbl = new Label("Export data:")
+            exportLbl = new Label("Export data:")
             {
-                X = Pos.Percent(45),
+                X = Pos.Left(postsBtn),
                 Y = Pos.Bottom(postsBtn) + Pos.Percent(10),
                 AutoSize = true,
+                Visible = false,
             };
-            Button exportBtn = new Button("Export")
+            exportBtn = new Button("Export")
             {
                 X = Pos.Right(exportLbl) + Pos.Percent(1),
                 Y = Pos.Top(exportLbl),
                 AutoSize = true,
+                Visible = false,
             };
             exportBtn.Clicked += OnExportOpen;
             this.Add(exportLbl, exportBtn);
 
-            Label importLbl = new Label("Import data:")
+            importLbl = new Label("Import data:")
             {
                 X = Pos.Left(exportLbl),
                 Y = Pos.Top(exportLbl) + Pos.Percent(5),
                 AutoSize = true,
+                Visible = false,
             };
-            Button importBtn = new Button("Import")
+            importBtn = new Button("Import")
             {
                 X = Pos.Right(importLbl) + Pos.Percent(1),
                 Y = Pos.Top(importLbl),
                 AutoSize = true,
+                Visible = false,
             };
             importBtn.Clicked += OnImportOpen;
             this.Add(importLbl, importBtn);
+
+            Label currUserLbl = new Label("Logged user: ")
+            {
+                X = Pos.Percent(90),
+                Y = Pos.Percent(3),
+            };
+            currUserName = new TextField("No one logged in")
+            {
+                X = Pos.Left(currUserLbl) - Pos.Percent(2),
+                Y = Pos.Bottom(currUserLbl) + Pos.Percent(3),
+                Width = Dim.Percent(10),
+                TextAlignment = TextAlignment.Centered,
+                ReadOnly = true,
+            };
+            this.Add(currUserLbl, currUserName);
+
+            registrationBtn = new Button("Registration")
+            {
+                X = Pos.Left(currUserName) + Pos.Percent(1.1f),
+                Y = Pos.Bottom(currUserName) + Pos.Percent(3),
+                AutoSize = true,
+            };
+            registrationBtn.Clicked += OnRegister;
+            loginBtn = new Button("Login")
+            {
+                X = Pos.Left(currUserLbl) + Pos.Percent(1),
+                Y = Pos.Bottom(registrationBtn) + Pos.Percent(3),
+                AutoSize = true,
+            };
+            loginBtn.Clicked += OnLogin;
+            logOutBtn = new Button("Log out")
+            {
+                X = Pos.Left(loginBtn),
+                Y = Pos.Top(loginBtn),
+                AutoSize = true,
+                Visible = false,
+            };
+            logOutBtn.Clicked += OnLogOut;
+            this.Add(registrationBtn, loginBtn, logOutBtn);
         }
 
         public void SetRepositories(UserRepository usersRepository, PostRepository postsRepository, CommentRepository commentsRepository)
@@ -150,46 +224,159 @@ namespace TerminalGUIApp.Windows.MainWindow
                 menus[i].CloseMenu();
             }
         }
-    
+        private bool CanBeExecuted()
+        {
+            if (currentUser == null)
+            {
+                return false;
+            }
+            
+            return true;     
+        }
+
+
         private void OnOpenUsers()
         {
+            Toplevel top = Application.Top;
+
             MainUsersWindow win = new MainUsersWindow();
             win.SetRepository(usersRepository);
 
-            Application.Run(win);
+            top.Add(win);
+            Application.Run(win);   
+            top.Add(this);
         }
-
         private void OnOpenPosts()
         {
+            Toplevel top = Application.Top;
+
             MainPostsWindow win = new MainPostsWindow();
             win.SetRepository(postsRepository);
 
+            top.Add(win);
             Application.Run(win);
+            top.Add(this);
         }
-
         private void OnOpenComments()
         {
+            Toplevel top = Application.Top;
+
             MainCommentsWindow win = new MainCommentsWindow();
             win.SetRepository(commentsRepository);
 
+            top.Add(win);
             Application.Run(win);
+            top.Add(this);
         }
     
     
         private void OnImportOpen()
         {
+            Toplevel top = Application.Top;
+
             ImportWindow win = new ImportWindow();
             win.SetRepositories(usersRepository, postsRepository, commentsRepository);
 
+            top.Add(win);
             Application.Run(win);
+            top.Add(this);
         }
-
         private void OnExportOpen()
         {
+            Toplevel top = Application.Top;
+
             ExportWindow win = new ExportWindow();
             win.SetRepositories(postsRepository);
 
+            top.Add(win);
             Application.Run(win);
+            top.Add(this);
+        }
+    
+    
+        private void OnRegister()
+        {
+            RegisterDialog dialog = new RegisterDialog();
+            dialog.SetRepository(usersRepository);
+
+            Application.Run(dialog);
+        }
+
+        private void OnLogin()
+        {
+            LoginDialog dialog = new LoginDialog();
+            dialog.SetRepository(usersRepository);
+
+            Application.Run(dialog);
+
+            if (dialog.logged)
+            {
+                currentUser = dialog.GetUser;   
+
+                this.currUserName.Text = currentUser.fullname; 
+
+                InterfaceOn();
+            }
+        }
+
+        private void OnLogOut()
+        {
+            currentUser = null;
+
+            InterfaceOff();
+        }
+
+        private void InterfaceOn()
+        {
+            this.currUserName.Text = currentUser.fullname;
+
+            usersLbl.Visible = true;
+            usersBtn.Visible = true;
+
+            postsLbl.Visible = true;
+            postsBtn.Visible = true;
+
+            commentsLbl.Visible = true;
+            commentsBtn.Visible = true;
+
+            exportLbl.Visible = true;
+            exportBtn.Visible = true;
+
+            registrationBtn.Visible = false;
+
+            importLbl.Visible = true;
+            importBtn.Visible = true;
+
+            loginBtn.Visible = false;
+            logOutBtn.Visible = true;
+
+            Application.Refresh();
+        }
+        private void InterfaceOff()
+        {
+            this.currUserName.Text = "No one logged in";
+
+            usersLbl.Visible = false;
+            usersBtn.Visible = false;
+
+            postsLbl.Visible = false;
+            postsBtn.Visible = false;
+
+            commentsLbl.Visible = false;
+            commentsBtn.Visible = false;
+
+            exportLbl.Visible = false;
+            exportBtn.Visible = false;
+
+            importLbl.Visible = false;
+            importBtn.Visible = false;
+
+            registrationBtn.Visible = true;
+
+            loginBtn.Visible = true;
+            logOutBtn.Visible = false;
+
+            Application.Refresh();
         }
     }
 }

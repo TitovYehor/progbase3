@@ -39,6 +39,27 @@ namespace ProcessData
             return posts;
         }
 
+        public int[] GetAllPostsIds()
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT id FROM posts";
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<int> idsList = GetListOfIds(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            int[] ids = new int[idsList.Count];
+            idsList.CopyTo(ids);
+
+            return ids;
+        }
+
         public bool PostExists(int id)
         {
             connection.Open();
@@ -197,10 +218,12 @@ namespace ProcessData
 
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = @"UPDATE posts
-                                    SET content = $content
+                                    SET content = $content,
+                                        pinned_comment = $pinComment
                                     WHERE id = $postId";
             command.Parameters.AddWithValue("$postId", postId);
             command.Parameters.AddWithValue("$content", post.content);
+            command.Parameters.AddWithValue("$pinComment", post.pinComment);
 
             int nChanged = command.ExecuteNonQuery();
 
@@ -308,8 +331,9 @@ namespace ProcessData
             string content = reader.GetString(1);
             DateTime createdAt = reader.GetDateTime(2);
             int userId = reader.GetInt32(3);
+            int pinComment = reader.GetInt32(4);
 
-            Post post = new Post(postId, content, createdAt, userId);
+            Post post = new Post(postId, content, createdAt, userId, pinComment);
 
             return post;
         }
@@ -348,11 +372,11 @@ namespace ProcessData
 
         private static Comment ReadCommentFromCrossJoin(SqliteDataReader reader)
         {
-            int id = reader.GetInt32(4);
-            string content = reader.GetString(5);
-            DateTime createdAt = reader.GetDateTime(6);
-            int userId = reader.GetInt32(7);
-            int postId = reader.GetInt32(8);
+            int id = reader.GetInt32(5);
+            string content = reader.GetString(6);
+            DateTime createdAt = reader.GetDateTime(7);
+            int userId = reader.GetInt32(8);
+            int postId = reader.GetInt32(9);
 
             Comment comment = new Comment(id, content, createdAt, userId, postId);
 
@@ -368,6 +392,18 @@ namespace ProcessData
             mass = new T[listOfMass.Count];
 
             listOfMass.CopyTo(mass);
+        }
+    
+        private static List<int> GetListOfIds(SqliteDataReader reader)
+        {
+            List<int> list = new List<int>();
+
+            while (reader.Read())
+            {
+                list.Add(reader.GetInt32(0));
+            } 
+
+            return list;
         }
     }
 }
