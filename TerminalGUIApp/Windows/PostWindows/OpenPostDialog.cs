@@ -141,7 +141,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
             Application.Run(dialog);
 
-            if (!dialog.canceled)
+            if (dialog.accepted)
             {
                 Post changedPost = dialog.GetPost();
 

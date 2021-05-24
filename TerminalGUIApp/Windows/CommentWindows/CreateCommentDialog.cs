@@ -6,7 +6,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
 {
     public class CreateCommentDialog : Dialog
     {
-        public bool canceled;
+        public bool accepted;
 
         protected Label idLbl;
         protected TextField commentContentInput; 
@@ -130,14 +130,14 @@ namespace TerminalGUIApp.Windows.CommentWindows
 
         private void OnCreateDialogCanceled()
         {
-            canceled = true;
+            accepted = true;
 
             Application.RequestStop();
         }
 
         private void OnCreateDialogSubmit()
         {
-            canceled = false;
+            accepted = false;
 
             Application.RequestStop();
         }

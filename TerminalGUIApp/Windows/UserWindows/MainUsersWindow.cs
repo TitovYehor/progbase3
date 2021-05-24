@@ -8,6 +8,8 @@ namespace TerminalGUIApp.Windows.UserWindows
 {
     public class MainUsersWindow : Window
     {
+        private User currentUser;
+
         private int pageSize = 10;
         private int page = 1;
 
@@ -27,6 +29,8 @@ namespace TerminalGUIApp.Windows.UserWindows
 
         private Button prevPageBtn;
         private Button nextPageBtn;
+        private Button firstPageBtn;
+        private Button lastPageBtn;
 
         private Button deleteUserBtn;
         private Button editUserBtn;
@@ -61,10 +65,16 @@ namespace TerminalGUIApp.Windows.UserWindows
             allUsersListView.OpenSelectedItem += OnOpenUser;
             allUsersListView.SelectedItemChanged += OnItemChanged;
 
+            firstPageBtn = new Button("First page")
+            {
+                X = Pos.Percent(27),
+                Y = Pos.Percent(10),
+                Visible = false,
+            };
             prevPageBtn = new Button("Previous page")
             {
-                X = Pos.Percent(35),
-                Y = Pos.Percent(10),
+                X = Pos.Right(firstPageBtn) + Pos.Percent(3),
+                Y = Pos.Top(firstPageBtn),
             };
             pageLbl = new Label("?")
             {
@@ -88,9 +98,16 @@ namespace TerminalGUIApp.Windows.UserWindows
                 X = Pos.Right(totalPagesLbl) + Pos.Percent(3),
                 Y = Pos.Top(prevPageBtn),
             };
+            lastPageBtn = new Button("Last page")
+            {
+                X = Pos.Right(nextPageBtn) + Pos.Percent(3),
+                Y = Pos.Top(nextPageBtn),
+            };
+            firstPageBtn.Clicked += OnFirstPage;
             nextPageBtn.Clicked += OnNextPage;
             prevPageBtn.Clicked += OnPrevPage;
-            this.Add(prevPageBtn, pageLbl, separateLbl, totalPagesLbl, nextPageBtn);
+            lastPageBtn.Clicked += OnLastPage;
+            this.Add(firstPageBtn, prevPageBtn, pageLbl, separateLbl, totalPagesLbl, nextPageBtn, lastPageBtn);
 
             frameView = new FrameView("Users")
             {
@@ -151,6 +168,11 @@ namespace TerminalGUIApp.Windows.UserWindows
             UpdateCurrentPage();
         }
 
+        public void SetCurrentUser(User user)
+        {
+            this.currentUser = user;
+        }
+
         private void UpdateCurrentPage()
         {
             int totalPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
@@ -193,10 +215,11 @@ namespace TerminalGUIApp.Windows.UserWindows
             {
                 selecting = false;
             }
-            
 
             prevPageBtn.Visible = (page != 1);
             nextPageBtn.Visible = (page !< totalPages);
+            firstPageBtn.Visible = prevPageBtn.Visible;
+            lastPageBtn.Visible = nextPageBtn.Visible;
         }
 
 
@@ -235,6 +258,22 @@ namespace TerminalGUIApp.Windows.UserWindows
 
             page -= 1;
             
+            UpdateCurrentPage();
+        }
+
+        private void OnLastPage()
+        {
+            int totalPages = usersRepository.GetSearchPagesCount(pageSize, searchValue);
+
+            page = totalPages;
+
+            UpdateCurrentPage();
+        }
+
+        private void OnFirstPage()
+        {
+            page = 1;
+
             UpdateCurrentPage();
         }
 
@@ -299,7 +338,7 @@ namespace TerminalGUIApp.Windows.UserWindows
 
             Application.Run(dialog);
 
-            if (!dialog.canceled)
+            if (dialog.accepted)
             {
                 User changedUser = dialog.GetUser(); 
 
@@ -346,7 +385,7 @@ namespace TerminalGUIApp.Windows.UserWindows
 
             Application.Run(dialog);
 
-            if (!dialog.canceled)
+            if (dialog.accepted)
             {
                 User user = dialog.GetUser();
 

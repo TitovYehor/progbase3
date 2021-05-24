@@ -6,7 +6,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 {
     public class CreatePostDialog : Dialog
     {
-        public bool canceled;
+        public bool accepted;
 
         protected Label idLbl;
         protected TextField postContentInput; 
@@ -106,14 +106,14 @@ namespace TerminalGUIApp.Windows.PostWindows
 
         private void OnCreateDialogCanceled()
         {
-            canceled = true;
+            accepted = false;
 
             Application.RequestStop();
         }
 
         private void OnCreateDialogSubmit()
         {
-            canceled = false;
+            accepted = true;
 
             Application.RequestStop();
         }

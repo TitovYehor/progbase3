@@ -9,6 +9,9 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.Title = "Edit user";
             this.userImportedLbl.Visible = true;
             this.userImportedCaptionLbl.Visible = true;
+            this.roleLbl.Visible = true;
+            this.roleComboBox.Visible = true;
+            this.roleComboBox.SetSource(this.listOfRoles);
         }
 
         public void SetUser(User user)
@@ -19,6 +22,7 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.userFullnameInput.Text = user.fullname;
             this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
             this.userImportedLbl.Text = user.imported.ToString();
+            this.roleComboBox.Text = user.role;
         }
     }
 }

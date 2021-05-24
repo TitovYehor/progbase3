@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Terminal.Gui;
 
 using ProcessData;
@@ -6,7 +7,7 @@ namespace TerminalGUIApp.Windows.UserWindows
 {
     public class CreateUserDialog : Dialog
     {
-        public bool canceled;
+        public bool accepted = false;
 
         protected Label idLbl;
         protected TextField userUsernameInput;  
@@ -15,6 +16,9 @@ namespace TerminalGUIApp.Windows.UserWindows
         protected DateField userCreatedAtDateField;
         protected Label userImportedCaptionLbl;
         protected Label userImportedLbl;
+        protected Label roleLbl;
+        protected List<string> listOfRoles = new List<string>(){"user", "moderator", "admin"};
+        protected ComboBox roleComboBox;
 
 
 
@@ -104,6 +108,22 @@ namespace TerminalGUIApp.Windows.UserWindows
             };
             this.Add(userImportedCaptionLbl, userImportedLbl);
 
+            roleLbl = new Label("Role: ")
+            {
+                X = Pos.Left(idLabelLbl),
+                Y = Pos.Top(idLabelLbl) + Pos.Percent(60),
+                Visible = false,
+            };
+            roleComboBox = new ComboBox("")
+            {
+                X = Pos.Percent(20),
+                Y = Pos.Top(roleLbl),
+                Width = Dim.Percent(10),
+                Height = Dim.Fill(),
+                Visible = false,
+            };
+            roleComboBox.SetSource(listOfRoles);
+            this.Add(roleLbl, roleComboBox);
 
             Button okBtn = new Button("Ok");
             okBtn.Clicked += OnCreateDialogSubmit;
@@ -126,20 +146,21 @@ namespace TerminalGUIApp.Windows.UserWindows
                 fullname = userFullnameInput.Text.ToString(),
                 createdAt = userCreatedAtDateField.Date, 
                 imported = (userImportedLbl.Text.ToString() == "True") ? true : false,
+                role = roleComboBox.Text.ToString(),
             };
         }
 
 
         private void OnCreateDialogCanceled()
         {
-            canceled = true;
+            accepted = false;
 
             Application.RequestStop();
         }
 
         private void OnCreateDialogSubmit()
         {
-            canceled = false;
+            accepted = true;
 
             Application.RequestStop();
         }

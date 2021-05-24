@@ -155,7 +155,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
 
             Application.Run(dialog);
 
-            if (!dialog.canceled)
+            if (dialog.accepted)
             {
                 Comment changedComment = dialog.GetComment();
 

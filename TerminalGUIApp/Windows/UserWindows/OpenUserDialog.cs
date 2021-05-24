@@ -173,7 +173,7 @@ namespace TerminalGUIApp.Windows.UserWindows
 
             Application.Run(dialog);
 
-            if (!dialog.canceled)
+            if (dialog.accepted)
             {
                 User changedUser = dialog.GetUser();
 

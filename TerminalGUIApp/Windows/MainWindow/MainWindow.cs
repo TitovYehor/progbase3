@@ -241,11 +241,9 @@ namespace TerminalGUIApp.Windows.MainWindow
 
             MainUsersWindow win = new MainUsersWindow();
             win.SetRepository(usersRepository);
+            win.SetCurrentUser(currentUser);
 
-            top.Add(win);
-            Application.Run(win);   
-            top.Add(this);
-            this.SetFocus();
+            RunWindow(win);
         }
         private void OnOpenPosts()
         {
@@ -254,10 +252,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             MainPostsWindow win = new MainPostsWindow();
             win.SetRepository(postsRepository);
 
-            top.Add(win);
-            Application.Run(win);
-            top.Add(this);
-            this.SetFocus();
+            RunWindow(win);
         }
         private void OnOpenComments()
         {
@@ -266,10 +261,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             MainCommentsWindow win = new MainCommentsWindow();
             win.SetRepository(commentsRepository);
 
-            top.Add(win);
-            Application.Run(win);
-            top.Add(this);
-            this.SetFocus();
+            RunWindow(win);
         }
     
     
@@ -280,10 +272,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             ImportWindow win = new ImportWindow();
             win.SetRepositories(usersRepository, postsRepository, commentsRepository);
 
-            top.Add(win);
-            Application.Run(win);
-            top.Add(this);
-            this.SetFocus();
+            RunWindow(win);
         }
         private void OnExportOpen()
         {
@@ -292,10 +281,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             ExportWindow win = new ExportWindow();
             win.SetRepositories(postsRepository);
 
-            top.Add(win);
-            Application.Run(win);
-            top.Add(this);
-            this.SetFocus();
+            RunWindow(win);
         }
     
     
@@ -329,6 +315,14 @@ namespace TerminalGUIApp.Windows.MainWindow
             currentUser = null;
 
             InterfaceOff();
+        }
+
+        private void RunWindow(Window win)
+        {
+            Application.Top.Add(win);
+            Application.Run(win);
+            Application.Top.Add(this);
+            this.SetFocus();
         }
 
         private void InterfaceOn()
