@@ -82,6 +82,7 @@ namespace ProcessData
             return isExists;
         }
 
+
         public int GetSearchPagesCount(int pageSize, string searchValue)
         {
             if (pageSize < 1)
@@ -104,7 +105,6 @@ namespace ProcessData
 
             return totalSearchPages;
         }
-
         public List<Post> GetSearchPage(string searchValue, int pageNum, int pageSize)
         {
             if (pageNum < 1)
@@ -138,6 +138,65 @@ namespace ProcessData
 
             return searchPage;
         }
+
+        public List<Post> GetSearchUserPostsPage(int userId, string searchValue, int pageNum, int pageSize)
+        {
+            if (pageNum < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page '{pageNum}' out of range");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = @"SELECT * FROM posts 
+                                    WHERE content LIKE '%' || $searchValue || '%' AND user_id = $userId
+                                    LIMIT $skip,$countOfOut";
+            command.Parameters.AddWithValue("$userId", userId);
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+            command.Parameters.AddWithValue("$skip", (pageNum - 1) * pageSize);
+            command.Parameters.AddWithValue("$countOfOut", pageSize);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Post> searchPage = ReadPosts(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return searchPage;
+        }
+        public int GetSearchUserPostsPagesCount(int userId, int pageSize, string searchValue)
+        {
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM posts 
+                                    WHERE content LIKE '%' || $searchValue || '%' AND user_id = $userId";
+            command.Parameters.AddWithValue("$userId", userId);
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+
+            int totalFound = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            int totalSearchPages = (int)Math.Ceiling((float)totalFound / (float)pageSize);
+
+            return totalSearchPages;
+        }
+
 
         public int Insert(Post post) 
         {

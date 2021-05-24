@@ -36,6 +36,7 @@ namespace TerminalGUIApp.Windows.MainWindow
         private Button registrationBtn;
         private Button loginBtn;
         private Button logOutBtn;
+        private Button userContentBtn;
 
 
         public MainWindow()
@@ -197,6 +198,16 @@ namespace TerminalGUIApp.Windows.MainWindow
             };
             logOutBtn.Clicked += OnLogOut;
             this.Add(registrationBtn, loginBtn, logOutBtn);
+
+            userContentBtn = new Button($"Open all user content and data")
+            {
+                X = Pos.Center(),
+                Y = Pos.Bottom(importBtn) + Pos.Percent(10),
+                AutoSize = true,
+                Visible = false,
+            };
+            userContentBtn.Clicked += OnOpenUserContent;
+            this.Add(userContentBtn);
         }
 
         public void SetRepositories(UserRepository usersRepository, PostRepository postsRepository, CommentRepository commentsRepository)
@@ -284,6 +295,23 @@ namespace TerminalGUIApp.Windows.MainWindow
             RunWindow(win);
         }
     
+
+        private void OnOpenUserContent()
+        {
+            Toplevel top = Application.Top;
+
+            UserContentWindow win = new UserContentWindow();
+            win.SetCurrentUser(currentUser);
+            win.SetRepositories(usersRepository, postsRepository, commentsRepository);
+
+            RunWindow(win);
+
+            if (win.deleted)
+            {
+                OnLogOut();
+            }
+        }
+
     
         private void OnRegister()
         {
@@ -349,6 +377,8 @@ namespace TerminalGUIApp.Windows.MainWindow
             loginBtn.Visible = false;
             logOutBtn.Visible = true;
 
+            userContentBtn.Visible = true;
+
             Application.Refresh();
         }
         private void InterfaceOff()
@@ -374,6 +404,8 @@ namespace TerminalGUIApp.Windows.MainWindow
 
             loginBtn.Visible = true;
             logOutBtn.Visible = false;
+
+            userContentBtn.Visible = false;
 
             Application.Refresh();
         }
