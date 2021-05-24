@@ -140,7 +140,6 @@ namespace TerminalGUIApp.Windows.UserWindows
         {
             return new User()
             {
-                id = int.Parse(idLbl.Text.ToString()),
                 username = userUsernameInput.Text.ToString(),
                 password = userPasswordInput.Text.ToString(),
                 fullname = userFullnameInput.Text.ToString(),

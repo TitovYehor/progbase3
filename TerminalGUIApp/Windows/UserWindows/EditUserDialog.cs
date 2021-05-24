@@ -7,6 +7,7 @@ namespace TerminalGUIApp.Windows.UserWindows
         public EditUserDialog()
         {
             this.Title = "Edit user";
+            
             this.userImportedLbl.Visible = true;
             this.userImportedCaptionLbl.Visible = true;
             this.roleLbl.Visible = true;

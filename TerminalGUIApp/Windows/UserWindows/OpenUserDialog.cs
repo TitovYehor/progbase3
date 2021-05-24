@@ -7,10 +7,10 @@ namespace TerminalGUIApp.Windows.UserWindows
     public class OpenUserDialog : Dialog
     {
         public bool deleted;
-
         public bool changed;
 
         protected User user;
+        public bool canEdit;
 
         private Label idLbl;
         private TextField userUsernameInput;  
@@ -18,7 +18,8 @@ namespace TerminalGUIApp.Windows.UserWindows
         private TextField userFullnameInput;
         private DateField userCreatedAtDateField;
         private Label userImportedLbl;
-
+        private Button editBtn;
+        private Button deleteBtn;
 
 
         public OpenUserDialog()
@@ -109,20 +110,27 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.Add(userImportedCaptionLbl, userImportedLbl);
             
             
-            Button editBtn = new Button("Edit")
+            editBtn = new Button("Edit")
             {
                 X = Pos.Percent(90),
                 Y = Pos.Percent(5),
+                Visible = false,
             };
             editBtn.Clicked += OnUserEdit;
-            Button deleteBtn = new Button("Delete")
+            deleteBtn = new Button("Delete")
             {
                 X = editBtn.X,
                 Y = Pos.Percent(10),
+                Visible = false,
             };
             deleteBtn.Clicked += OnUserDelete;
-            this.Add(editBtn, deleteBtn);       
+            this.Add(editBtn, deleteBtn);
 
+            if (!canEdit)
+            {
+                this.editBtn.Visible = false;
+                this.deleteBtn.Visible = false;
+            }       
 
             Button backBtn = new Button("Back");
             backBtn.Clicked += OnOpenUserDialogBack;
@@ -141,6 +149,12 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.userFullnameInput.Text = user.fullname;
             this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
             this.userImportedLbl.Text = user.imported.ToString();
+
+            if (canEdit)
+            {
+                editBtn.Visible = true;
+                deleteBtn.Visible = true;
+            }
         }
 
         public User GetUser()

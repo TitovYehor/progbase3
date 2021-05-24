@@ -8,7 +8,8 @@ namespace TerminalGUIApp.Windows.UserWindows
 {
     public class MainUsersWindow : Window
     {
-        private User currentUser;
+        private User currUser;
+        bool canEdit = false;
 
         private int pageSize = 10;
         private int page = 1;
@@ -17,6 +18,7 @@ namespace TerminalGUIApp.Windows.UserWindows
         private bool selecting = false;
 
         private ListView allUsersListView;
+        private ListView currUserListView;
         private UserRepository usersRepository;
 
         private MenuBar mainMenu;
@@ -26,12 +28,14 @@ namespace TerminalGUIApp.Windows.UserWindows
         private TextField searchInput;
 
         private FrameView frameView;
+        private FrameView currUserFrameView;
 
         private Button prevPageBtn;
         private Button nextPageBtn;
         private Button firstPageBtn;
         private Button lastPageBtn;
 
+        private Button createNewUserBtn;
         private Button deleteUserBtn;
         private Button editUserBtn;
 
@@ -64,6 +68,13 @@ namespace TerminalGUIApp.Windows.UserWindows
             };
             allUsersListView.OpenSelectedItem += OnOpenUser;
             allUsersListView.SelectedItemChanged += OnItemChanged;
+
+            currUserListView = new ListView(new List<User>())
+            {
+                Width = Dim.Fill(),
+                Height = Dim.Fill(),
+            };
+            currUserListView.OpenSelectedItem += OnOpenUser;
 
             firstPageBtn = new Button("First page")
             {
@@ -119,26 +130,39 @@ namespace TerminalGUIApp.Windows.UserWindows
             frameView.Add(allUsersListView);
             this.Add(frameView);
 
-            Button createNewUserBtn = new Button("Create new user")
+            createNewUserBtn = new Button("Create new user")
             {
                 X = Pos.Left(frameView) + Pos.Percent(10),
                 Y = Pos.Bottom(frameView) + Pos.Percent(5),
+                Visible = false,
             };
             createNewUserBtn.Clicked += OnCreateButtonClick;
             deleteUserBtn = new Button("Delete user")
             {
                 X = Pos.Right(createNewUserBtn) + Pos.Percent(10),
                 Y = Pos.Top(createNewUserBtn),
+                Visible = false,
             };
             deleteUserBtn.Clicked += OnDeleteUser;
             editUserBtn = new Button("Edit user")
             {
                 X = Pos.Right(deleteUserBtn) + Pos.Percent(10),
                 Y = Pos.Top(createNewUserBtn),
+                Visible = false,
             };
             editUserBtn.Clicked += OnEditUser;
             this.Add(createNewUserBtn, deleteUserBtn, editUserBtn);
 
+            currUserFrameView = new FrameView("Current user")
+            {
+                X = Pos.Left(frameView),
+                Y = Pos.Bottom(createNewUserBtn) + Pos.Percent(5),
+                Width = Dim.Width(frameView),
+                Height = 3,
+            };
+            currUserFrameView.Add(currUserListView);
+            this.Add(currUserFrameView);
+            
             Label searchLbl = new Label("Seeking categories - ")
             {
                 X = Pos.Percent(33),
@@ -157,6 +181,8 @@ namespace TerminalGUIApp.Windows.UserWindows
             };
             searchInput.TextChanged += OnSearchChange;
             this.Add(searchLbl, chooseSearchColumn, searchInput);
+
+            Application.Refresh();
         }
 
 
@@ -170,7 +196,19 @@ namespace TerminalGUIApp.Windows.UserWindows
 
         public void SetCurrentUser(User user)
         {
-            this.currentUser = user;
+            this.currUser = user;
+
+            this.currUserListView.SetSource(new List<User>(){currUser});
+            this.currUserFrameView.Add(this.currUserListView);
+          
+            if (currUser.role == "admin")
+            {
+                this.createNewUserBtn.Visible = true;
+                this.editUserBtn.Visible = true;
+                this.deleteUserBtn.Visible = true;
+
+                canEdit = true;
+            }
         }
 
         private void UpdateCurrentPage()
@@ -215,6 +253,9 @@ namespace TerminalGUIApp.Windows.UserWindows
             {
                 selecting = false;
             }
+
+            editUserBtn.Visible = canEdit;
+            deleteUserBtn.Visible = canEdit;
 
             prevPageBtn.Visible = (page != 1);
             nextPageBtn.Visible = (page !< totalPages);
@@ -321,7 +362,7 @@ namespace TerminalGUIApp.Windows.UserWindows
         }
 
         private void OnEditUser()
-        {            
+        {         
             int userIndex = allUsersListView.SelectedItem;
              
             if (userIndex == -1 || userIndex >= allUsersListView.Source.ToList().Count)
@@ -375,6 +416,17 @@ namespace TerminalGUIApp.Windows.UserWindows
         {
             selecting = true;
 
+            User changedUser = (User)args.Value; 
+
+            if (changedUser.id == currUser.id || currUser.role == "admin")
+            {
+                canEdit = true;
+            }
+            else
+            {
+                canEdit = false;
+            }
+
             UpdateCurrentPage();
         }
 
@@ -394,17 +446,22 @@ namespace TerminalGUIApp.Windows.UserWindows
                     return;
                 }
 
-                user.createdAt = DateTime.Now;
-                int insertedId = usersRepository.Insert(user);
-                user.id = insertedId;
+                Authentication authentication = new Authentication(usersRepository);
 
-                allUsersListView.SetSource(usersRepository.GetSearchPage("", usersRepository.GetSearchPagesCount(pageSize, ""), pageSize));
+                if (!authentication.Register(user))
+                {
+                    MessageBox.ErrorQuery("Creating user", "Can not create user. User with that username already exists.", "Ok");
+                }
+                else
+                {
+                    allUsersListView.SetSource(usersRepository.GetSearchPage("", usersRepository.GetSearchPagesCount(pageSize, ""), pageSize));
 
-                allUsersListView.SelectedItem = allUsersListView.Source.ToList().Count - 1;
+                    allUsersListView.SelectedItem = allUsersListView.Source.ToList().Count - 1;
 
-                allUsersListView.OnOpenSelectedItem();
+                    allUsersListView.OnOpenSelectedItem();
 
-                UpdateCurrentPage();
+                    UpdateCurrentPage();
+                }
             }
         }
     
@@ -414,6 +471,7 @@ namespace TerminalGUIApp.Windows.UserWindows
             User user = (User)args.Value;
 
             OpenUserDialog dialog = new OpenUserDialog();
+            dialog.canEdit = canEdit;
             dialog.SetUser(user);
 
             Application.Run(dialog);
