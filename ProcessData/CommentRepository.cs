@@ -73,6 +73,65 @@ namespace ProcessData
 
             return searchPage;
         }
+        
+        public int GetSearchUserCommentsPagesCount(int userId, int pageSize, string searchValue)
+        {
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM comments 
+                                    WHERE content LIKE '%' || $searchValue || '%' AND user_id = $userId";
+            command.Parameters.AddWithValue("$userId", userId);
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+
+            int totalFound = (int)(long)command.ExecuteScalar();
+
+            connection.Close();
+
+            int totalSearchPages = (int)Math.Ceiling((float)totalFound / (float)pageSize);
+
+            return totalSearchPages;
+        }
+        public List<Comment> GetSearchUserCommentsPage(int userId, string searchValue, int pageNum, int pageSize)
+        {
+            if (pageNum < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page '{pageNum}' out of range");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"Page size can not be '{pageSize}'");
+            }
+
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = @"SELECT * FROM comments 
+                                    WHERE content LIKE '%' || $searchValue || '%' AND user_id = $userId
+                                    LIMIT $skip,$countOfOut";
+            command.Parameters.AddWithValue("$userId", userId);
+            command.Parameters.AddWithValue("$searchValue", searchValue);
+            command.Parameters.AddWithValue("$skip", (pageNum - 1) * pageSize);
+            command.Parameters.AddWithValue("$countOfOut", pageSize);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Comment> searchPage = ReadComments(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return searchPage;
+        }
+
 
         public int[] GetAllCommentsIds()
         {
@@ -170,13 +229,13 @@ namespace ProcessData
             return isExists;
         }
 
-        public Comment[] GetByUserId(int userId) 
+        public List<Comment> GetByUserId(int userId) 
         {
             connection.Open();
 
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM comments WHERE user_id = $userId";
-            command.Parameters.AddWithValue("$user_Id", userId);
+            command.Parameters.AddWithValue("$userId", userId);
 
             SqliteDataReader reader = command.ExecuteReader();
 
@@ -186,19 +245,16 @@ namespace ProcessData
 
             connection.Close();
 
-            Comment[] comments = new Comment[list.Count];
-            list.CopyTo(comments);
-
-            return comments;
+            return list;
         }
 
-        public Comment[] GetByPostId(int postId) 
+        public List<Comment> GetByPostId(int postId) 
         {
             connection.Open();
 
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM comments WHERE post_id = $postId";
-            command.Parameters.AddWithValue("$post_id", postId);
+            command.Parameters.AddWithValue("$postId", postId);
 
             SqliteDataReader reader = command.ExecuteReader();
 
@@ -208,10 +264,7 @@ namespace ProcessData
 
             connection.Close();
 
-            Comment[] comments = new Comment[list.Count];
-            list.CopyTo(comments);
-
-            return comments;
+            return list;
         }
 
         public bool Update(int commentId, Comment comment)

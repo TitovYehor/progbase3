@@ -8,6 +8,10 @@ namespace TerminalGUIApp.Windows.CommentWindows
 {
     public class MainCommentsWindow : Window
     {
+        private User currentUser;
+
+        private Comment currentComment;
+
         private int pageSize = 10;
         private int page = 1;
 
@@ -45,7 +49,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 {
                     new MenuBarItem ("_Comments", new MenuItem[]
                     {
-                        new MenuItem("_New...", "", OnNew),
+                        //new MenuItem("_New...", "", OnNew),
                         new MenuItem("_Quit", "", OnQuit)
                     })
                 })
@@ -107,36 +111,6 @@ namespace TerminalGUIApp.Windows.CommentWindows
             lastPageBtn.Clicked += OnLastPage;
             this.Add(firstPageBtn, prevPageBtn, pageLbl, separateLbl, totalPagesLbl, nextPageBtn, lastPageBtn);
 
-            frameView = new FrameView("Comments")
-            {
-                X = Pos.Percent(15),
-                Y = Pos.Percent(20),
-                Width = Dim.Fill() - Dim.Percent(15),
-                Height = pageSize + 2,
-            };
-            frameView.Add(allCommentsListView);
-            this.Add(frameView);
-
-            Button createNewCommentBtn = new Button("Create new comment")
-            {
-                X = Pos.Left(frameView) + Pos.Percent(10),
-                Y = Pos.Bottom(frameView) + Pos.Percent(5),
-            };
-            createNewCommentBtn.Clicked += OnCreateButtonClick;
-            deleteCommentBtn = new Button("Delete comment")
-            {
-                X = Pos.Right(createNewCommentBtn) + Pos.Percent(10),
-                Y = Pos.Top(createNewCommentBtn),
-            };
-            deleteCommentBtn.Clicked += OnDeleteComment;
-            editCommentBtn = new Button("Edit comment")
-            {
-                X = Pos.Right(deleteCommentBtn) + Pos.Percent(10),
-                Y = Pos.Top(createNewCommentBtn),
-            };
-            editCommentBtn.Clicked += OnEditComment;
-            this.Add(createNewCommentBtn, deleteCommentBtn, editCommentBtn);
-
             Label searchLbl = new Label("Seeking categories - ")
             {
                 X = Pos.Percent(33),
@@ -147,7 +121,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 X = Pos.Right(searchLbl),
                 Y = Pos.Top(searchLbl),
             };
-            searchInput = new TextField()
+            searchInput = new TextField("")
             {
                 X = Pos.Right(chooseSearchColumn) + Pos.Percent(1),
                 Y = Pos.Top(searchLbl),
@@ -155,6 +129,30 @@ namespace TerminalGUIApp.Windows.CommentWindows
             };
             searchInput.TextChanged += OnSearchChange;
             this.Add(searchLbl, chooseSearchColumn, searchInput);
+
+            frameView = new FrameView("Comments")
+            {
+                X = Pos.Percent(15),
+                Y = Pos.Percent(20),
+                Width = Dim.Fill() - Dim.Percent(15),
+                Height = pageSize + 2,
+            };
+            frameView.Add(allCommentsListView);
+            this.Add(frameView);
+
+            deleteCommentBtn = new Button("Delete comment")
+            {
+                X = Pos.Left(frameView),
+                Y = Pos.Bottom(frameView) + Pos.Percent(5),
+            };
+            deleteCommentBtn.Clicked += OnDeleteComment;
+            editCommentBtn = new Button("Edit comment")
+            {
+                X = Pos.Right(deleteCommentBtn) + Pos.Percent(10),
+                Y = Pos.Top(deleteCommentBtn),
+            };
+            editCommentBtn.Clicked += OnEditComment;
+            this.Add(deleteCommentBtn, editCommentBtn);
         }
 
 
@@ -164,6 +162,11 @@ namespace TerminalGUIApp.Windows.CommentWindows
             this.commentsRepository = commentsRepository;
 
             UpdateCurrentPage();
+        }
+
+        public void SetUser(User user)
+        {
+            this.currentUser = user;
         }
 
         private void UpdateCurrentPage()
@@ -200,8 +203,9 @@ namespace TerminalGUIApp.Windows.CommentWindows
                     frameView.RemoveAll();
                     frameView.Add(allCommentsListView);
 
-                    editCommentBtn.Visible = true;
-                    deleteCommentBtn.Visible = true;
+                    currentComment = (Comment)allCommentsListView.Source.ToList()[allCommentsListView.SelectedItem];
+
+                    SetRoleLimits();
                 }
             }
             else
@@ -217,10 +221,6 @@ namespace TerminalGUIApp.Windows.CommentWindows
         }
 
 
-        private void OnNew()
-        {
-            OnCreateButtonClick();
-        }
         private void OnQuit()
         {
             Application.RequestStop();
@@ -339,6 +339,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 }
 
                 changedComment.createdAt = selectedComment.createdAt;
+                changedComment.id = selectedComment.id;
             
                 bool isUpdated = commentsRepository.Update(selectedComment.id, changedComment); 
 
@@ -351,6 +352,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
                     MessageBox.ErrorQuery("Editing comment", "Couldn't edit comment", "Ok");
                 }
             }
+
+            allCommentsListView.SelectedItem = commentIndex;
         }
 
 
@@ -366,36 +369,29 @@ namespace TerminalGUIApp.Windows.CommentWindows
         {
             selecting = true;
 
+            currentComment = (Comment)args.Value; 
+
             UpdateCurrentPage();
+
+            SetRoleLimits();
         }
 
-
-        private void OnCreateButtonClick()
+        private void SetRoleLimits()
         {
-            CreateCommentDialog dialog = new CreateCommentDialog();
-
-            Application.Run(dialog);
-
-            if (dialog.accepted)
+            if (currentUser.id == currentComment.userId)
             {
-                Comment comment = dialog.GetComment();
-
-                if (comment == null)
-                {
-                    return;
-                }
-
-                comment.createdAt = DateTime.Now;
-                int insertedId = commentsRepository.Insert(comment);
-                comment.id = insertedId;
-
-                allCommentsListView.SetSource(commentsRepository.GetSearchPage("", commentsRepository.GetSearchPagesCount(pageSize, ""), pageSize));
-
-                allCommentsListView.SelectedItem = allCommentsListView.Source.ToList().Count - 1;
-
-                allCommentsListView.OnOpenSelectedItem();
-
-                UpdateCurrentPage();
+                editCommentBtn.Visible = true;
+                deleteCommentBtn.Visible = true;
+            }
+            else if (currentUser.role == "moderator" || currentUser.role == "admin")
+            {
+                editCommentBtn.Visible = false;
+                deleteCommentBtn.Visible = true;
+            }
+            else
+            {
+                editCommentBtn.Visible = false;
+                deleteCommentBtn.Visible = false;
             }
         }
     
@@ -403,6 +399,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
         private void OnOpenComment(ListViewItemEventArgs args)
         {            
             Comment comment = (Comment)args.Value;
+
+            int selectedItemIndex = allCommentsListView.SelectedItem;
 
             OpenCommentDialog dialog = new OpenCommentDialog();
             dialog.SetComment(comment);
@@ -435,6 +433,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 Comment changedComment = dialog.GetComment();
 
                 changedComment.createdAt = comment.createdAt;
+                changedComment.id = comment.id;
 
                 bool isUpdated = commentsRepository.Update(comment.id, changedComment); 
 
@@ -447,6 +446,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
                     MessageBox.ErrorQuery("Editing comment", "Couldn't edit comment", "Ok");
                 }
             }
+
+            allCommentsListView.SelectedItem = selectedItemIndex;
         }
     }
 }

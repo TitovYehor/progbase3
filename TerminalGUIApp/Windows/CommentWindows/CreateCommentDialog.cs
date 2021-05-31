@@ -70,6 +70,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 X = Pos.Left(idLbl),
                 Y = Pos.Top(commentUserIdLbl),
                 Width = Dim.Percent(25),
+                ReadOnly = true,
             };
             this.Add(commentUserIdLbl, commentUserIdInput);
 
@@ -83,6 +84,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 X = Pos.Left(idLbl),
                 Y = Pos.Top(commentPostIdLbl),
                 Width = Dim.Percent(25),
+                ReadOnly = true,
             };
             this.Add(commentPostIdLbl, commentPostIdInput);
 
@@ -127,17 +129,25 @@ namespace TerminalGUIApp.Windows.CommentWindows
             };
         }
 
+        public void SetUserId(int userId)
+        {
+            this.commentUserIdInput.Text = userId.ToString();
+        }
+        public void SetPostId(int postId)
+        {
+            this.commentPostIdInput.Text = postId.ToString();
+        }
 
         private void OnCreateDialogCanceled()
         {
-            accepted = true;
+            accepted = false;
 
             Application.RequestStop();
         }
 
         private void OnCreateDialogSubmit()
         {
-            accepted = false;
+            accepted = true;
 
             Application.RequestStop();
         }

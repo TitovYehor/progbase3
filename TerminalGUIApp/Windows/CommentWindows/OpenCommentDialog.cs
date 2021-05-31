@@ -88,6 +88,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 X = Pos.Left(idLbl),
                 Y = Pos.Top(commentPostIdLbl),
                 Width = Dim.Percent(25),
+                ReadOnly = true,
             };
             this.Add(commentPostIdLbl, commentPostIdInput);
             
@@ -165,6 +166,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 } 
 
                 changedComment.createdAt = comment.createdAt;
+                changedComment.id = comment.id;
 
                 this.changed = true;
                 this.SetComment(changedComment);

@@ -6,6 +6,8 @@ namespace TerminalGUIApp.Windows.PostWindows
 {
     public class OpenPostDialog : Dialog
     {
+        private bool isModeratorMode;
+
         public bool deleted;
 
         public bool changed;
@@ -16,6 +18,9 @@ namespace TerminalGUIApp.Windows.PostWindows
         private TextField postContentInput; 
         private DateField postCreatedAtDateField; 
         private TextField postUserIdInput;
+
+        private Button editBtn;
+        private Button deleteBtn;
 
 
 
@@ -64,7 +69,7 @@ namespace TerminalGUIApp.Windows.PostWindows
             };
             this.Add(postCreatedAtLbl, postCreatedAtDateField);
 
-            Label postPostIdLbl = new Label("Post id: ")
+            Label postUserIdLbl = new Label("User id: ")
             {
                 X = Pos.Left(idLabelLbl),
                 Y = Pos.Top(idLabelLbl) + Pos.Percent(30),
@@ -72,20 +77,20 @@ namespace TerminalGUIApp.Windows.PostWindows
             postUserIdInput = new TextField("")
             {
                 X = Pos.Left(idLbl),
-                Y = Pos.Top(postPostIdLbl),
+                Y = Pos.Top(postUserIdLbl),
                 Width = Dim.Percent(25),
                 ReadOnly = true,
             };
-            this.Add(postPostIdLbl, postUserIdInput);
+            this.Add(postUserIdLbl, postUserIdInput);
             
             
-            Button editBtn = new Button("Edit")
+            editBtn = new Button("Edit")
             {
                 X = Pos.Percent(90),
                 Y = Pos.Percent(5),
             };
             editBtn.Clicked += OnPostEdit;
-            Button deleteBtn = new Button("Delete")
+            deleteBtn = new Button("Delete")
             {
                 X = editBtn.X,
                 Y = Pos.Percent(10),
@@ -109,6 +114,30 @@ namespace TerminalGUIApp.Windows.PostWindows
             this.postContentInput.Text = post.content;
             this.postCreatedAtDateField.Text = post.createdAt.ToShortDateString();
             this.postUserIdInput.Text = post.userId.ToString();
+        }
+
+        public void SetEditorMode(User user)
+        {
+            if (user.id == post.userId)
+            {
+                this.editBtn.Visible = true;
+
+                this.deleteBtn.Visible = true;
+            }
+            else if (user.role == "moderator" || user.role == "admin")
+            {
+                this.isModeratorMode = true;
+
+                this.editBtn.Visible = false;
+
+                this.deleteBtn.Visible = true;
+            }
+            else
+            {
+                this.editBtn.Visible = false;
+
+                this.deleteBtn.Visible = false;
+            }
         }
 
         public Post GetPost()
@@ -151,6 +180,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 } 
 
                 changedPost.createdAt = post.createdAt;
+                changedPost.id = post.id;
 
                 this.changed = true;
                 this.SetPost(changedPost);

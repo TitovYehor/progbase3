@@ -160,6 +160,16 @@ namespace TerminalGUIApp.Windows.MainWindow
             importBtn.Clicked += OnImportOpen;
             this.Add(importLbl, importBtn);
 
+            userContentBtn = new Button($"Open all user content and data")
+            {
+                X = Pos.Center(),
+                Y = Pos.Bottom(importBtn) + Pos.Percent(10),
+                AutoSize = true,
+                Visible = false,
+            };
+            userContentBtn.Clicked += OnOpenUserContent;
+            this.Add(userContentBtn);
+
             Label currUserLbl = new Label("Logged user: ")
             {
                 X = Pos.Percent(90),
@@ -198,16 +208,6 @@ namespace TerminalGUIApp.Windows.MainWindow
             };
             logOutBtn.Clicked += OnLogOut;
             this.Add(registrationBtn, loginBtn, logOutBtn);
-
-            userContentBtn = new Button($"Open all user content and data")
-            {
-                X = Pos.Center(),
-                Y = Pos.Bottom(importBtn) + Pos.Percent(10),
-                AutoSize = true,
-                Visible = false,
-            };
-            userContentBtn.Clicked += OnOpenUserContent;
-            this.Add(userContentBtn);
         }
 
         public void SetRepositories(UserRepository usersRepository, PostRepository postsRepository, CommentRepository commentsRepository)
@@ -251,17 +251,20 @@ namespace TerminalGUIApp.Windows.MainWindow
             Toplevel top = Application.Top;
 
             MainUsersWindow win = new MainUsersWindow();
-            win.SetRepository(usersRepository);
             win.SetCurrentUser(currentUser);
+            win.SetRepository(usersRepository);
 
             RunWindow(win);
+
+            UpdateUser();
         }
         private void OnOpenPosts()
         {
             Toplevel top = Application.Top;
 
             MainPostsWindow win = new MainPostsWindow();
-            win.SetRepository(postsRepository);
+            win.SetUser(currentUser);
+            win.SetRepositories(postsRepository, commentsRepository);
 
             RunWindow(win);
         }
@@ -270,11 +273,20 @@ namespace TerminalGUIApp.Windows.MainWindow
             Toplevel top = Application.Top;
 
             MainCommentsWindow win = new MainCommentsWindow();
+            win.SetUser(currentUser);
             win.SetRepository(commentsRepository);
 
             RunWindow(win);
         }
     
+
+        private void UpdateUser()
+        {
+            currentUser = usersRepository.GetById(currentUser.id);
+
+            currUserName.Text = currentUser.fullname;
+        }
+
     
         private void OnImportOpen()
         {
@@ -309,6 +321,10 @@ namespace TerminalGUIApp.Windows.MainWindow
             if (win.deleted)
             {
                 OnLogOut();
+            }
+            else
+            {
+                UpdateUser();
             }
         }
 

@@ -6,18 +6,22 @@ namespace TerminalGUIApp.Windows.UserWindows
 {
     public class OpenUserDialog : Dialog
     {
+        private bool isAdminMode = false;
+
         public bool deleted;
         public bool changed;
 
         protected User user;
         public bool canEdit;
+        public bool canDelete;
 
         private Label idLbl;
-        private TextField userUsernameInput;  
+        private TextField userUsernameInput;
         private TextField userPasswordInput;
         private TextField userFullnameInput;
         private DateField userCreatedAtDateField;
         private Label userImportedLbl;
+        private Label userRoleLbl;
         private Button editBtn;
         private Button deleteBtn;
 
@@ -108,6 +112,19 @@ namespace TerminalGUIApp.Windows.UserWindows
                 Width = Dim.Percent(25),
             };
             this.Add(userImportedCaptionLbl, userImportedLbl);
+
+            Label roleLbl = new Label("Role: ")
+            {
+                X = Pos.Left(idLabelLbl),
+                Y = Pos.Top(idLabelLbl) + Pos.Percent(60),
+            };
+            userRoleLbl = new Label("?")
+            {
+                X = Pos.Percent(20),
+                Y = Pos.Top(roleLbl),
+                AutoSize = true,
+            };
+            this.Add(roleLbl, userRoleLbl);
             
             
             editBtn = new Button("Edit")
@@ -124,13 +141,7 @@ namespace TerminalGUIApp.Windows.UserWindows
                 Visible = false,
             };
             deleteBtn.Clicked += OnUserDelete;
-            this.Add(editBtn, deleteBtn);
-
-            if (!canEdit)
-            {
-                this.editBtn.Visible = false;
-                this.deleteBtn.Visible = false;
-            }       
+            this.Add(editBtn, deleteBtn);   
 
             Button backBtn = new Button("Back");
             backBtn.Clicked += OnOpenUserDialogBack;
@@ -149,12 +160,22 @@ namespace TerminalGUIApp.Windows.UserWindows
             this.userFullnameInput.Text = user.fullname;
             this.userCreatedAtDateField.Text = user.createdAt.ToShortDateString();
             this.userImportedLbl.Text = user.imported.ToString();
+            this.userRoleLbl.Text = user.role;
 
             if (canEdit)
             {
                 editBtn.Visible = true;
+            }
+            
+            if (canDelete)
+            {
                 deleteBtn.Visible = true;
             }
+        }
+
+        public void SetAdminEditorMode()
+        {
+            this.isAdminMode = true;
         }
 
         public User GetUser()
@@ -185,6 +206,11 @@ namespace TerminalGUIApp.Windows.UserWindows
             EditUserDialog dialog = new EditUserDialog();
             dialog.SetUser(user);
 
+            if (isAdminMode)
+            {
+                dialog.SetAdminEditorMode();
+            }
+
             Application.Run(dialog);
 
             if (dialog.accepted)
@@ -197,9 +223,14 @@ namespace TerminalGUIApp.Windows.UserWindows
                 } 
 
                 changedUser.createdAt = user.createdAt;
+                changedUser.id = user.id;
 
                 this.changed = true;
                 this.SetUser(changedUser);
+            }
+            else
+            {
+                MessageBox.Query("Editing user", "User information not changed", "Ok");
             }
         }
     }

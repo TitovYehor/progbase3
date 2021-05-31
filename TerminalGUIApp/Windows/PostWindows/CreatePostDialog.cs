@@ -69,6 +69,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 X = Pos.Left(idLbl),
                 Y = Pos.Top(postUserIdLbl),
                 Width = Dim.Percent(25),
+                ReadOnly = true,
             };
             this.Add(postUserIdLbl, postUserIdInput);
 
@@ -103,6 +104,10 @@ namespace TerminalGUIApp.Windows.PostWindows
             };
         }
 
+        public void SetUserId(int userId)
+        {
+            this.postUserIdInput.Text = userId.ToString();
+        }
 
         private void OnCreateDialogCanceled()
         {

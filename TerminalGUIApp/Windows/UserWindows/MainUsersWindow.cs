@@ -9,7 +9,8 @@ namespace TerminalGUIApp.Windows.UserWindows
     public class MainUsersWindow : Window
     {
         private User currUser;
-        bool canEdit = false;
+        private bool canEdit = false;
+        private bool canDelete = false;
 
         private int pageSize = 10;
         private int page = 1;
@@ -204,10 +205,9 @@ namespace TerminalGUIApp.Windows.UserWindows
             if (currUser.role == "admin")
             {
                 this.createNewUserBtn.Visible = true;
-                this.editUserBtn.Visible = true;
                 this.deleteUserBtn.Visible = true;
 
-                canEdit = true;
+                canDelete = true;
             }
         }
 
@@ -255,12 +255,15 @@ namespace TerminalGUIApp.Windows.UserWindows
             }
 
             editUserBtn.Visible = canEdit;
-            deleteUserBtn.Visible = canEdit;
+            deleteUserBtn.Visible = canDelete;
 
             prevPageBtn.Visible = (page != 1);
             nextPageBtn.Visible = (page !< totalPages);
             firstPageBtn.Visible = prevPageBtn.Visible;
             lastPageBtn.Visible = nextPageBtn.Visible;
+
+            currUser = usersRepository.GetById(currUser.id);
+            currUserListView.SetSource(new List<User>(){currUser});
         }
 
 
@@ -376,6 +379,11 @@ namespace TerminalGUIApp.Windows.UserWindows
 
             EditUserDialog dialog = new EditUserDialog();
             dialog.SetUser(selectedUser);
+            
+            if (currUser.role == "admin" && selectedUser.role != "admin")
+            {
+                dialog.SetAdminEditorMode();
+            }
 
             Application.Run(dialog);
 
@@ -389,6 +397,7 @@ namespace TerminalGUIApp.Windows.UserWindows
                 }
 
                 changedUser.createdAt = selectedUser.createdAt;
+                changedUser.id = selectedUser.id;
             
                 bool isUpdated = usersRepository.Update(selectedUser.id, changedUser); 
 
@@ -400,6 +409,10 @@ namespace TerminalGUIApp.Windows.UserWindows
                 {
                     MessageBox.ErrorQuery("Editing user", "Couldn't edit user", "Ok");
                 }
+            }
+            else
+            {
+                MessageBox.Query("Editing user", "User information not changed", "Ok");
             }
         }
 
@@ -418,13 +431,20 @@ namespace TerminalGUIApp.Windows.UserWindows
 
             User changedUser = (User)args.Value; 
 
-            if (changedUser.id == currUser.id || currUser.role == "admin")
+            if (changedUser.id == currUser.id)
             {
+                canDelete = true;
+                canEdit = true;
+            }
+            else if (currUser.role == "admin" && changedUser.role != "admin")
+            {
+                canDelete = true;
                 canEdit = true;
             }
             else
             {
                 canEdit = false;
+                canDelete = false;
             }
 
             UpdateCurrentPage();
@@ -470,9 +490,21 @@ namespace TerminalGUIApp.Windows.UserWindows
         {            
             User user = (User)args.Value;
 
+            if (user.id == currUser.id)
+            {
+                canEdit = true;
+                canDelete = true;
+            }
+
             OpenUserDialog dialog = new OpenUserDialog();
             dialog.canEdit = canEdit;
+            dialog.canDelete = canDelete;
             dialog.SetUser(user);
+
+            if (currUser.role == "admin" && user.role != "admin")
+            {
+                dialog.SetAdminEditorMode();
+            }
 
             Application.Run(dialog);
 

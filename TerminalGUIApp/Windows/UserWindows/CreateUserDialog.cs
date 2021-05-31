@@ -12,13 +12,15 @@ namespace TerminalGUIApp.Windows.UserWindows
         protected Label idLbl;
         protected TextField userUsernameInput;  
         protected TextField userPasswordInput;
+        protected Button changePasswordBtn;
         protected TextField userFullnameInput;
         protected DateField userCreatedAtDateField;
         protected Label userImportedCaptionLbl;
         protected Label userImportedLbl;
         protected Label roleLbl;
-        protected List<string> listOfRoles = new List<string>(){"user", "moderator", "admin"};
+        protected List<string> listOfRoles = new List<string>(){"user", "moderator"};
         protected ComboBox roleComboBox;
+        protected Label currentRoleLbl;
 
 
 
@@ -123,7 +125,14 @@ namespace TerminalGUIApp.Windows.UserWindows
                 Visible = false,
             };
             roleComboBox.SetSource(listOfRoles);
-            this.Add(roleLbl, roleComboBox);
+            currentRoleLbl = new Label("")
+            {
+                X = Pos.Left(roleComboBox),
+                Y = Pos.Top(roleComboBox),
+                AutoSize = true,
+                Visible = false,
+            };
+            this.Add(roleLbl, roleComboBox, currentRoleLbl);
 
             Button okBtn = new Button("Ok");
             okBtn.Clicked += OnCreateDialogSubmit;
@@ -147,6 +156,19 @@ namespace TerminalGUIApp.Windows.UserWindows
                 imported = (userImportedLbl.Text.ToString() == "True") ? true : false,
                 role = roleComboBox.Text.ToString(),
             };
+        }
+
+
+        public void SetCreateMode(User user)
+        {
+            if (user.role == "admin")
+            {
+                roleComboBox.Visible = true;
+            }
+            else
+            {
+                roleComboBox.Visible = false;
+            }
         }
 
 

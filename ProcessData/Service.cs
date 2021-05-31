@@ -21,14 +21,14 @@ namespace ProcessData
         {
             user.posts = postRepository.GetByUserId(userId);
 
-            user.comments = commentRepository.GetByUserId(userId);
+            //user.comments = commentRepository.GetByUserId(userId);
 
             return user;
         }
 
         public Post GetAllPostData(int postId, Post post)
         {
-            post.comments = commentRepository.GetByPostId(postId);
+            //post.comments = commentRepository.GetByPostId(postId);
 
             return post;
         }    
