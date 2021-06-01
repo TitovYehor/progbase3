@@ -351,6 +351,8 @@ namespace TerminalGUIApp.Windows.MainWindow
                 this.currUserName.Text = currentUser.fullname; 
 
                 InterfaceOn();
+
+                this.FocusNext();
             }
         }
 

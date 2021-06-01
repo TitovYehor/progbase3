@@ -114,6 +114,8 @@ namespace TerminalGUIApp.Windows.AuthenticationDialogs
                 if (authentication.Register(registerUser))
                 {
                     MessageBox.Query("Register user", "User successfully created", "Ok");
+
+                    Application.RequestStop();
                 }
                 else
                 {

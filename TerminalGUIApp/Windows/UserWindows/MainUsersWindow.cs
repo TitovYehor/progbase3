@@ -360,6 +360,8 @@ namespace TerminalGUIApp.Windows.UserWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.Query("Editing user", "User deleted", "Ok");
                 }
             }
         }
@@ -404,6 +406,8 @@ namespace TerminalGUIApp.Windows.UserWindows
                 if (isUpdated)
                 {
                     allUsersListView.SetSource(usersRepository.GetSearchPage(searchValue, page, pageSize));
+
+                    MessageBox.Query("Editing user", "User information changed", "Ok");
                 }
                 else
                 {
@@ -413,6 +417,8 @@ namespace TerminalGUIApp.Windows.UserWindows
             else
             {
                 MessageBox.Query("Editing user", "User information not changed", "Ok");
+
+                allUsersListView.SelectedItem = userIndex;
             }
         }
 
@@ -490,6 +496,8 @@ namespace TerminalGUIApp.Windows.UserWindows
         {            
             User user = (User)args.Value;
 
+            int userIndex = allUsersListView.SelectedItem;
+
             if (user.id == currUser.id)
             {
                 canEdit = true;
@@ -522,14 +530,15 @@ namespace TerminalGUIApp.Windows.UserWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.Query("Editing user", "User deleted", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Deleting user", "Couldn't delete user", "Ok");
                 }
-            }
-        
-            if (dialog.changed)
+            }        
+            else if (dialog.changed)
             {
                 User changedUser = dialog.GetUser();
 
@@ -540,11 +549,17 @@ namespace TerminalGUIApp.Windows.UserWindows
                 if (isUpdated)
                 {
                     UpdateCurrentPage();
+
+                    MessageBox.Query("Editing user", "User information changed", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing user", "Couldn't edit user", "Ok");
                 }
+            }
+            else
+            {
+                allUsersListView.SelectedItem = userIndex;
             }
         }
     }

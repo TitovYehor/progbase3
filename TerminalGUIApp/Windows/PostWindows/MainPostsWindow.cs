@@ -18,6 +18,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
         private string searchValue = "";
         private bool selecting = false;
+        private bool selectingComment;
 
         private ListView allPostsListView;
         private PostRepository postsRepository;
@@ -38,8 +39,6 @@ namespace TerminalGUIApp.Windows.PostWindows
         private Button deletePostBtn;
         private Button editPostBtn;
 
-        //private Label nullReferenceLbl = new Label();
-
         // for comments
         private ListView allCommentsListView;
         private ListView pinCommentListView;
@@ -51,7 +50,8 @@ namespace TerminalGUIApp.Windows.PostWindows
         private Button deleteCommentBtn;
         private Button editCommentBtn;
 
-        //private Label nullCommentReferenceLbl = new Label();
+        private Button pinBtn;
+        private Button unPinBtn;
 
 
 
@@ -209,22 +209,50 @@ namespace TerminalGUIApp.Windows.PostWindows
                 Width = Dim.Width(frameView),
                 Height = Dim.Height(frameView),
             };
-            commentsFrameView.Add(allCommentsListView);
+            //commentsFrameView.Add(allCommentsListView);
             this.Add(commentsFrameView);
+
+            pinBtn = new Button("Pin comment")
+            {
+                X = Pos.Right(commentsFrameView) + Pos.Percent(3),
+                Y = Pos.Top(commentsFrameView),
+                AutoSize = true,
+            };
+            pinBtn.Clicked += OnPinComment;
+            unPinBtn = new Button("Unpin comment")
+            {
+                X = Pos.Left(pinBtn),
+                Y = Pos.Bottom(pinBtn) + Pos.Percent(5),
+                AutoSize = true,
+            };
+            unPinBtn.Clicked += OnUnpinComment;
+            this.Add(pinBtn, unPinBtn);
 
             deleteCommentBtn = new Button("Delete comment")
             {
                 X = Pos.Left(commentsFrameView),
-                Y = Pos.Bottom(commentsFrameView) + Pos.Percent(5),
+                Y = Pos.Bottom(commentsFrameView) + Pos.Percent(3),
+                Visible = false,
             };
             deleteCommentBtn.Clicked += OnDeleteComment;
             editCommentBtn = new Button("Edit comment")
             {
-                X = Pos.Right(deleteCommentBtn) + Pos.Percent(5),
+                X = Pos.Right(deleteCommentBtn) + Pos.Percent(3),
                 Y = Pos.Top(deleteCommentBtn),
+                Visible = false,
             };
             editCommentBtn.Clicked += OnEditComment;
             this.Add(deleteCommentBtn, editCommentBtn);
+
+            pinnedCommentFrameView = new FrameView("Pinned comment")
+            {
+                X = Pos.Left(frameView),
+                Y = Pos.Bottom(deleteCommentBtn) + Pos.Percent(3),
+                Width = Dim.Width(frameView),
+                Height = 3,
+            };
+            pinnedCommentFrameView.Add(pinCommentListView);
+            this.Add(pinnedCommentFrameView);
         }
 
 
@@ -259,8 +287,6 @@ namespace TerminalGUIApp.Windows.PostWindows
             {
                 this.allPostsListView.SetSource(postsRepository.GetSearchPage(searchValue, page, pageSize));
 
-                UpdateComments();
-
                 if (allPostsListView.Source.ToList().Count == 0)
                 {
                     Label nullReferenceLbl = new Label("No posts found")
@@ -271,51 +297,61 @@ namespace TerminalGUIApp.Windows.PostWindows
                     frameView.RemoveAll();
                     frameView.Add(nullReferenceLbl);
 
-                    Label nullCommentReferenceLbl = new Label("No comments found")
-                    {
-                        X = Pos.Percent(45),
-                        Y = Pos.Percent(50),
-                    };
-                    commentsFrameView.RemoveAll();
-                    commentsFrameView.Add(nullCommentReferenceLbl);
-
-                    editPostBtn.Visible = false;
-                    deletePostBtn.Visible = false;
+                    currentPost = null;
                 }
                 else
                 {
                     frameView.RemoveAll();
                     frameView.Add(allPostsListView);
 
-                    //UpdateComments();
-
-                    SetPostRoleLimits();
+                    this.currentPost = (Post)allPostsListView.Source.ToList()[allPostsListView.SelectedItem];
                 }
             }
             else
             {
                 selecting = false;
-
-                UpdateComments();
             }
 
             prevPageBtn.Visible = (page != 1);
             nextPageBtn.Visible = (page !< totalPages);
             firstPageBtn.Visible = prevPageBtn.Visible;
             lastPageBtn.Visible = nextPageBtn.Visible;
+
+            UpdatePostBtns();
+
+            UpdateComments();
         }
 
         private void UpdateComments()
         {
-            if (allPostsListView.Source.ToList().Count != 0)
+            if (!selectingComment)
             {
-                this.currentPost = (Post)allPostsListView.Source.ToList()[allPostsListView.SelectedItem];
-
-                this.allCommentsListView.SetSource(commentsRepository.GetByPostId(currentPost.id));
-
-                if (allCommentsListView.Source.ToList().Count == 0)
+                if (allPostsListView.Source.ToList().Count != 0)
                 {
-                    Label nullReferenceLbl = new Label("No comments found")
+                    this.allCommentsListView.SetSource(commentsRepository.GetByPostId(currentPost.id));
+
+                    if (allCommentsListView.Source.ToList().Count == 0)
+                    {
+                        Label nullReferenceLbl = new Label("No comments found")
+                        {
+                            X = Pos.Percent(45),
+                            Y = Pos.Percent(50),
+                        };
+                        commentsFrameView.RemoveAll();
+                        commentsFrameView.Add(nullReferenceLbl);
+
+                        currentComment = null;
+                    }
+                    else
+                    {
+                        commentsFrameView.Add(allCommentsListView);
+                    
+                        this.currentComment = (Comment)allCommentsListView.Source.ToList()[allCommentsListView.SelectedItem];
+                    }
+                }
+                else
+                {
+                    Label nullReferenceLbl = new Label("Choose post first")
                     {
                         X = Pos.Percent(45),
                         Y = Pos.Percent(50),
@@ -323,18 +359,51 @@ namespace TerminalGUIApp.Windows.PostWindows
                     commentsFrameView.RemoveAll();
                     commentsFrameView.Add(nullReferenceLbl);
                 }
+            }
+            else
+            {
+                selectingComment = false;
+            }
+
+            UpdateCurrentPinComment();
+                
+            UpdateCommentBtns();
+        }
+
+        private void UpdateCurrentPinComment()
+        {   
+            if (currentPost != null)
+            {
+                if (currentPost.pinComment != null)
+                {
+                    List<Comment> list = new List<Comment>(){commentsRepository.GetById((int)currentPost.pinComment)};
+
+                    pinCommentListView.SetSource(list);
+
+                    pinnedCommentFrameView.RemoveAll();
+                    pinnedCommentFrameView.Add(pinCommentListView);
+                }
                 else
                 {
-                    this.currentComment = (Comment)allCommentsListView.Source.ToList()[allCommentsListView.SelectedItem];
-
-                    commentsFrameView.RemoveAll();
-                    commentsFrameView.Add(allCommentsListView);
+                    Label nullReferenceLbl = new Label("No comment pinned")
+                    {
+                        X = Pos.Percent(45),
+                        Y = Pos.Percent(50),
+                    };
+                    pinnedCommentFrameView.RemoveAll();
+                    pinnedCommentFrameView.Add(nullReferenceLbl);
                 }
             }
-            
-            createCommentBtn.Visible = (allPostsListView.Source.ToList().Count != 0);
-
-            SetCommentRoleLimits();
+            else
+            {
+                Label nullReferenceLbl = new Label("Choose post first")
+                {
+                    X = Pos.Percent(45),
+                    Y = Pos.Percent(50),
+                };
+                pinnedCommentFrameView.RemoveAll();
+                pinnedCommentFrameView.Add(nullReferenceLbl);
+            }
         }
 
 
@@ -427,6 +496,8 @@ namespace TerminalGUIApp.Windows.PostWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Deleting post", "Post deleted", "Ok");
                 }
             }
         }
@@ -466,12 +537,16 @@ namespace TerminalGUIApp.Windows.PostWindows
                 if (isUpdated)
                 {
                     allPostsListView.SetSource(postsRepository.GetSearchPage(searchValue, page, pageSize));
+
+                    MessageBox.ErrorQuery("Editing post", "Post edited", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing post", "Couldn't edit post", "Ok");
                 }
             }
+
+            allPostsListView.SelectedItem = postIndex;
         }
 
 
@@ -489,7 +564,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
             currentPost = (Post)args.Value;
 
-            SetPostRoleLimits();
+            // UpdatePostBtns();
 
             UpdateCurrentPage();
         }
@@ -498,44 +573,93 @@ namespace TerminalGUIApp.Windows.PostWindows
         {
             currentComment = (Comment)args.Value;
 
+            selectingComment = true;
+
             UpdateComments();
         }
 
-        private void SetPostRoleLimits()
+        private void UpdatePostBtns()
         {
-            if (currentPost.userId == currentUser.id)
+            if (currentPost != null)
             {
-                editPostBtn.Visible = true;
-                deletePostBtn.Visible = true;
-            }
-            else if (currentUser.role == "moderator" || currentUser.role == "admin")
-            {
-                editPostBtn.Visible = false;
-                deletePostBtn.Visible = true;
+                if (currentPost.userId == currentUser.id)
+                {
+                    editPostBtn.Visible = true;
+                    deletePostBtn.Visible = true;
+                    pinBtn.Visible = true;
+                    unPinBtn.Visible = true;
+                }
+                else if (currentUser.role == "moderator" || currentUser.role == "admin")
+                {
+                    editPostBtn.Visible = false;
+                    deletePostBtn.Visible = true;
+                    pinBtn.Visible = false;
+                    unPinBtn.Visible = false;
+                }
+                else
+                {
+                    editPostBtn.Visible = false;
+                    deletePostBtn.Visible = false;
+                    pinBtn.Visible = false;
+                    unPinBtn.Visible = false;
+                }
             }
             else
             {
                 editPostBtn.Visible = false;
                 deletePostBtn.Visible = false;
+                pinBtn.Visible = false;
+                unPinBtn.Visible = false;
             }
         }
 
-        private void SetCommentRoleLimits()
+        private void UpdateCommentBtns()
         {
-            if (currentComment.userId == currentUser.id)
+            createCommentBtn.Visible = (allPostsListView.Source.ToList().Count != 0);
+
+            if (allCommentsListView.Source.ToList().Count == 0)
             {
-                editCommentBtn.Visible = true;
-                deleteCommentBtn.Visible = true;
-            }
-            else if (currentUser.role == "moderator" || currentUser.role == "admin")
-            {
+                deleteCommentBtn.Visible = false;
                 editCommentBtn.Visible = false;
-                deleteCommentBtn.Visible = true;
+
+                pinBtn.Visible = false;
+                unPinBtn.Visible = false;
             }
             else
             {
-                editCommentBtn.Visible = false;
-                deleteCommentBtn.Visible = false;
+                if (currentComment != null)
+                {
+                    if (currentComment.userId == currentUser.id)
+                    {
+                        editCommentBtn.Visible = true;
+                        deleteCommentBtn.Visible = true;
+                    }
+                    else if (currentUser.role == "moderator" || currentUser.role == "admin")
+                    {
+                        editCommentBtn.Visible = false;
+                        deleteCommentBtn.Visible = true;
+                    }
+                    else
+                    {
+                        editCommentBtn.Visible = false;
+                        deleteCommentBtn.Visible = false;
+                    }
+
+                    if (currentPost != null)
+                    {
+                        if (currentPost.pinComment == null || currentComment.id != currentPost.pinComment)
+                        {
+                            unPinBtn.Visible = false;
+                        }
+                    }
+                }
+                else
+                {
+                    editCommentBtn.Visible = false;
+                    deleteCommentBtn.Visible = false;
+                    pinBtn.Visible = false;
+                    unPinBtn.Visible = false;
+                }    
             }
         }
 
@@ -575,6 +699,8 @@ namespace TerminalGUIApp.Windows.PostWindows
         {            
             Post post = (Post)args.Value;
 
+            int selectedItemIndex = allPostsListView.SelectedItem;
+
             OpenPostDialog dialog = new OpenPostDialog();
             dialog.SetPost(post);
             dialog.SetEditorMode(currentUser);
@@ -595,14 +721,15 @@ namespace TerminalGUIApp.Windows.PostWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Deleting post", "Post deleted", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Deleting post", "Couldn't delete post", "Ok");
                 }
-            }
-        
-            if (dialog.changed)
+            }        
+            else if (dialog.changed)
             {
                 Post changedPost = dialog.GetPost();
 
@@ -614,11 +741,17 @@ namespace TerminalGUIApp.Windows.PostWindows
                 if (isUpdated)
                 {
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Editing post", "Post edited", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing post", "Couldn't edit post", "Ok");
                 }
+            }
+            else
+            {
+                allPostsListView.SelectedItem = selectedItemIndex;
             }
         }
     
@@ -626,9 +759,11 @@ namespace TerminalGUIApp.Windows.PostWindows
         {
             Comment comment = (Comment)args.Value;
 
+            int selectedItemIndex = allCommentsListView.SelectedItem;
+
             OpenCommentDialog dialog = new OpenCommentDialog();
             dialog.SetComment(comment);
-            //dialog.
+            dialog.SetUser(currentUser);
 
             Application.Run(dialog);
 
@@ -646,14 +781,15 @@ namespace TerminalGUIApp.Windows.PostWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Deleting comment", "Comment deleted", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Deleting comment", "Couldn't delete comment", "Ok");
                 }
-            }
-        
-            if (dialog.changed)
+            }        
+            else if (dialog.changed)
             {
                 Comment changedComment = dialog.GetComment();
 
@@ -665,13 +801,20 @@ namespace TerminalGUIApp.Windows.PostWindows
                 if (isUpdated)
                 {
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Editing comment", "Comment edited", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing comment", "Couldn't edit comment", "Ok");
                 }
             }
+            else
+            {
+                allCommentsListView.SelectedItem = selectedItemIndex;
+            }
         }
+
 
         private void OnCreateCommentBtnClick()
         {
@@ -703,6 +846,39 @@ namespace TerminalGUIApp.Windows.PostWindows
             }
         }
     
+        private void OnPinComment()
+        {
+            currentPost.pinComment = currentComment.id;
+
+            if (postsRepository.Update(currentPost.id, currentPost))
+            {
+                MessageBox.Query("Pin commment", "Comment pined", "Ok");
+            }
+            else
+            {
+                MessageBox.ErrorQuery("Pin comment", "Comment can not be pined", "Ok");
+            }
+
+            UpdateComments();
+        }
+
+        private void OnUnpinComment()
+        {
+            currentPost.pinComment = null;
+
+            if (postsRepository.Update(currentPost.id, currentPost))
+            {
+                MessageBox.Query("Unpin commment", "Comment unpined", "Ok");
+            }
+            else
+            {
+                MessageBox.ErrorQuery("Unpin comment", "Comment can not be unpined", "Ok");
+            }
+
+            UpdateComments();
+        }
+
+
         private void OnDeleteComment()
         {
             int index = MessageBox.Query("Deleting comment", "Confirm deleting", "No", "Yes");
@@ -734,6 +910,8 @@ namespace TerminalGUIApp.Windows.PostWindows
                 else
                 {
                     UpdateComments();
+
+                    MessageBox.ErrorQuery("Deleting comment", "Comment deleted", "Ok");
                 }
             }
         }
@@ -772,12 +950,16 @@ namespace TerminalGUIApp.Windows.PostWindows
                 if (isUpdated)
                 {
                     UpdateComments();
+
+                    MessageBox.ErrorQuery("Editing comment", "Comment edited", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing comment", "Couldn't edit comment", "Ok");
                 }
             }
+
+            allCommentsListView.SelectedItem = commentIndex;
         }
     }
 }

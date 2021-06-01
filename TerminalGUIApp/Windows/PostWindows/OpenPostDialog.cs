@@ -6,8 +6,6 @@ namespace TerminalGUIApp.Windows.PostWindows
 {
     public class OpenPostDialog : Dialog
     {
-        private bool isModeratorMode;
-
         public bool deleted;
 
         public bool changed;
@@ -126,8 +124,6 @@ namespace TerminalGUIApp.Windows.PostWindows
             }
             else if (user.role == "moderator" || user.role == "admin")
             {
-                this.isModeratorMode = true;
-
                 this.editBtn.Visible = false;
 
                 this.deleteBtn.Visible = true;

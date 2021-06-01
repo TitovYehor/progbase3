@@ -16,7 +16,7 @@ namespace TerminalGUIApp.Windows.UserWindows
 
         public ChangePassDialog()
         {
-            Label userPasswordLbl = new Label("Password: ")
+            Label userPasswordLbl = new Label("New password: ")
             {
                 X = Pos.Percent(10),
                 Y = Pos.Percent(10),

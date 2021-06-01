@@ -17,6 +17,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
         private DateField commentCreatedAtDateField; 
         private TextField commentUserIdInput;
         private TextField commentPostIdInput;
+        private Button editBtn;
+        private Button deleteBtn;
 
 
         public OpenCommentDialog()
@@ -93,13 +95,13 @@ namespace TerminalGUIApp.Windows.CommentWindows
             this.Add(commentPostIdLbl, commentPostIdInput);
             
             
-            Button editBtn = new Button("Edit")
+            editBtn = new Button("Edit")
             {
                 X = Pos.Percent(90),
                 Y = Pos.Percent(5),
             };
             editBtn.Clicked += OnCommentEdit;
-            Button deleteBtn = new Button("Delete")
+            deleteBtn = new Button("Delete")
             {
                 X = editBtn.X,
                 Y = Pos.Percent(10),
@@ -124,6 +126,25 @@ namespace TerminalGUIApp.Windows.CommentWindows
             this.commentCreatedAtDateField.Text = comment.createdAt.ToShortDateString();
             this.commentUserIdInput.Text = comment.userId.ToString();
             this.commentPostIdInput.Text = comment.postId.ToString();
+        }
+
+        public void SetUser(User user)
+        {
+            if (user.id == comment.userId)
+            {
+                editBtn.Visible = true;
+                deleteBtn.Visible = true;
+            }
+            else if (user.role == "moderator" || user.role == "admin")
+            {
+                editBtn.Visible = false;
+                deleteBtn.Visible = true;
+            }
+            else
+            {
+                editBtn.Visible = false;
+                deleteBtn.Visible = false;
+            }
         }
 
         public Comment GetComment()

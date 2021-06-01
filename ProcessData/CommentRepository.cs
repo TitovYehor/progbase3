@@ -154,6 +154,29 @@ namespace ProcessData
             return ids;
         }
 
+        public Comment GetById(int id)
+        {
+            connection.Open();
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM comments WHERE id = $id";
+            command.Parameters.AddWithValue("$id", id);
+            SqliteDataReader reader = command.ExecuteReader();
+
+            Comment comment = null;
+
+            if (reader.Read())
+            {
+                comment = ReadComment(reader);
+            }
+
+            reader.Close();
+
+            connection.Close();
+
+            return comment;
+        }
+
         public int Insert(Comment comment) 
         {
             connection.Open();

@@ -307,6 +307,8 @@ namespace TerminalGUIApp.Windows.CommentWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Deleting comment", "Comment deleted", "Ok");
                 }
             }
         }
@@ -346,14 +348,18 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 if (isUpdated)
                 {
                     allCommentsListView.SetSource(commentsRepository.GetSearchPage(searchValue, page, pageSize));
+
+                    MessageBox.ErrorQuery("Editing comment", "Comment edited", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing comment", "Couldn't edit comment", "Ok");
                 }
             }
-
-            allCommentsListView.SelectedItem = commentIndex;
+            else
+            {
+                allCommentsListView.SelectedItem = commentIndex;   
+            }
         }
 
 
@@ -404,6 +410,7 @@ namespace TerminalGUIApp.Windows.CommentWindows
 
             OpenCommentDialog dialog = new OpenCommentDialog();
             dialog.SetComment(comment);
+            dialog.SetUser(currentUser);
 
             Application.Run(dialog);
 
@@ -421,14 +428,15 @@ namespace TerminalGUIApp.Windows.CommentWindows
                     }
 
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Deleting comment", "Comment deleted", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Deleting comment", "Couldn't delete comment", "Ok");
                 }
-            }
-        
-            if (dialog.changed)
+            }        
+            else if (dialog.changed)
             {
                 Comment changedComment = dialog.GetComment();
 
@@ -440,14 +448,18 @@ namespace TerminalGUIApp.Windows.CommentWindows
                 if (isUpdated)
                 {
                     UpdateCurrentPage();
+
+                    MessageBox.ErrorQuery("Editing comment", "Comment edited", "Ok");
                 }
                 else
                 {
                     MessageBox.ErrorQuery("Editing comment", "Couldn't edit comment", "Ok");
                 }
             }
-
-            allCommentsListView.SelectedItem = selectedItemIndex;
+            else
+            {
+                allCommentsListView.SelectedItem = selectedItemIndex;
+            }
         }
     }
 }
