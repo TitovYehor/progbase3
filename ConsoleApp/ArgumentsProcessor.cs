@@ -36,8 +36,6 @@ namespace ConsoleApp
 
             CommentRepository commentRep = new CommentRepository(databasePath);
 
-            Service service = new Service(userRep, postRep, commentRep);
-
             User currentUser = null;
 
             while (true)

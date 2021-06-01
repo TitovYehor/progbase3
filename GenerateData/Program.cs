@@ -36,8 +36,6 @@ namespace GenerateData
 
             CommentRepository commentRep = new CommentRepository(databasePath);
 
-            Service service = new Service(userRep, postRep, commentRep);
-
             while (true)
             {
                 WriteLine("".PadRight(40, '='));
@@ -65,7 +63,7 @@ namespace GenerateData
                     {
                         if (command[0] == "generate")
                         {
-                            ProcessGenerate(command, userRep, postRep, commentRep, service);
+                            ProcessGenerate(command, userRep, postRep, commentRep);
                         }
                         else
                         {
@@ -80,7 +78,7 @@ namespace GenerateData
             }
         }
 
-        static void ProcessGenerate(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep, Service service)
+        static void ProcessGenerate(string[] command, UserRepository userRep, PostRepository postRep, CommentRepository commentRep)
         {
             if (command.Length < 4)
             {
