@@ -209,7 +209,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 Width = Dim.Width(frameView),
                 Height = Dim.Height(frameView),
             };
-            //commentsFrameView.Add(allCommentsListView);
+            commentsFrameView.Add(allCommentsListView);
             this.Add(commentsFrameView);
 
             pinBtn = new Button("Pin comment")
@@ -285,6 +285,8 @@ namespace TerminalGUIApp.Windows.PostWindows
 
             if (!selecting)
             {
+                int currentPostIndex = allPostsListView.SelectedItem;
+
                 this.allPostsListView.SetSource(postsRepository.GetSearchPage(searchValue, page, pageSize));
 
                 if (allPostsListView.Source.ToList().Count == 0)
@@ -301,9 +303,14 @@ namespace TerminalGUIApp.Windows.PostWindows
                 }
                 else
                 {
+                    if (currentPostIndex < allPostsListView.Source.ToList().Count)
+                    {
+                        allPostsListView.SelectedItem = currentPostIndex;
+                    }
+
                     frameView.RemoveAll();
                     frameView.Add(allPostsListView);
-
+                    
                     this.currentPost = (Post)allPostsListView.Source.ToList()[allPostsListView.SelectedItem];
                 }
             }
@@ -497,7 +504,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
                     UpdateCurrentPage();
 
-                    MessageBox.ErrorQuery("Deleting post", "Post deleted", "Ok");
+                    MessageBox.Query("Deleting post", "Post deleted", "Ok");
                 }
             }
         }
@@ -538,7 +545,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 {
                     allPostsListView.SetSource(postsRepository.GetSearchPage(searchValue, page, pageSize));
 
-                    MessageBox.ErrorQuery("Editing post", "Post edited", "Ok");
+                    MessageBox.Query("Editing post", "Post edited", "Ok");
                 }
                 else
                 {
@@ -564,9 +571,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
             currentPost = (Post)args.Value;
 
-            // UpdatePostBtns();
-
-            UpdateCurrentPage();
+            UpdateCurrentPage(); 
         }
 
         private void OnCommentItemChanged(ListViewItemEventArgs args)
@@ -782,7 +787,7 @@ namespace TerminalGUIApp.Windows.PostWindows
 
                     UpdateCurrentPage();
 
-                    MessageBox.ErrorQuery("Deleting comment", "Comment deleted", "Ok");
+                    MessageBox.Query("Deleting comment", "Comment deleted", "Ok");
                 }
                 else
                 {
@@ -802,7 +807,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 {
                     UpdateCurrentPage();
 
-                    MessageBox.ErrorQuery("Editing comment", "Comment edited", "Ok");
+                    MessageBox.Query("Editing comment", "Comment edited", "Ok");
                 }
                 else
                 {
@@ -911,7 +916,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 {
                     UpdateComments();
 
-                    MessageBox.ErrorQuery("Deleting comment", "Comment deleted", "Ok");
+                    MessageBox.Query("Deleting comment", "Comment deleted", "Ok");
                 }
             }
         }
@@ -951,7 +956,7 @@ namespace TerminalGUIApp.Windows.PostWindows
                 {
                     UpdateComments();
 
-                    MessageBox.ErrorQuery("Editing comment", "Comment edited", "Ok");
+                    MessageBox.Query("Editing comment", "Comment edited", "Ok");
                 }
                 else
                 {
