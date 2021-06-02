@@ -334,21 +334,36 @@ namespace ProcessData
         
 
 
-        public Post[] GetFiltredByTextPosts(string text)
+        public List<Post> GetFiltredByTextPosts(string text)
         {
+            // connection.Open();
+
+            // SqliteCommand command = connection.CreateCommand();
+            // command.CommandText = @"SELECT * FROM posts, comments 
+            //                         WHERE posts.id = comments.post_id 
+            //                         AND posts.content LIKE '%' || $valueX || '%'";
+            // command.Parameters.AddWithValue("$valueX", text);
+
+            // SqliteDataReader reader = command.ExecuteReader();
+
+            // Post[] posts = ReadPostsFromCrossJoin(reader);
+
+            // reader.Close();
+
+            // connection.Close();
+
+            // return posts;
+
             connection.Open();
 
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM posts, comments 
-                                    WHERE posts.id = comments.post_id 
-                                    AND posts.content LIKE '%' || $valueX || '%'";
+            command.CommandText = @"SELECT * FROM posts 
+                                    WHERE posts.content LIKE '%' || $valueX || '%'";
             command.Parameters.AddWithValue("$valueX", text);
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            Post[] posts = ReadPostsFromCrossJoin(reader);
-
-            reader.Close();
+            List<Post> posts = ReadPosts(reader);
 
             connection.Close();
 

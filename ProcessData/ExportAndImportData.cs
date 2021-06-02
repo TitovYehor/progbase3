@@ -12,10 +12,12 @@ namespace ProcessData
         private static string commentsFileName = "comments.xml";
 
 
-        public static bool ExportPostsWithComments(string filterValue, string saveDirPath, string zipName, PostRepository postsRepository)
+        public static bool ExportPostsWithComments(string filterValue, string saveDirPath, string zipName,
+                                                   PostRepository postsRepository, CommentRepository commentsRepository)
         {
-            Post[] posts = postsRepository.GetFiltredByTextPosts(filterValue);
-            Comment[] comments = GetCommentsFromPostsMass(posts);
+            
+            Post[] posts = postsRepository.GetFiltredByTextPosts(filterValue).ToArray();
+            Comment[] comments = GetCommentsFromPostsMass(posts, commentsRepository).ToArray();
 
             string tempSavePath = $"{saveDirPath}/tempExportSave";
 
@@ -149,29 +151,46 @@ namespace ProcessData
         }
     
 
-        private static Comment[] GetCommentsFromPostsMass(Post[] posts)
+        private static List<Comment> GetCommentsFromPostsMass(Post[] posts, CommentRepository commentRepository)
         {
+            // List<Comment> list = new List<Comment>();
+
+            // if (posts.Length == 0)
+            // {
+            //     return null;
+            // }
+            // else
+            // {
+            //     for (int i = 0; i < posts.Length; i++)
+            //     {
+            //         for (int j = 0; j < posts[i].comments.Length; j++)
+            //         {
+            //             list.Add(posts[i].comments[j]);
+            //         }
+            //     }
+
+            //     Comment[] comments = new Comment[list.Count];
+            //     list.CopyTo(comments);
+
+            //     return comments;
+            // }
+
             List<Comment> list = new List<Comment>();
 
-            if (posts.Length == 0)
-            {
-                return null;
-            }
-            else
-            {
-                for (int i = 0; i < posts.Length; i++)
+            for (int i = 0; i < posts.Length; i++)
+            {   
+                List<Comment> commentsList = commentRepository.GetByPostId(posts[i].id);
+
+                if (commentsList.Count != 0)
                 {
-                    for (int j = 0; j < posts[i].comments.Length; j++)
+                    for (int j = 0; j < commentsList.Count; j++)
                     {
-                        list.Add(posts[i].comments[j]);
+                        list.Add(commentsList[j]);
                     }
                 }
-
-                Comment[] comments = new Comment[list.Count];
-                list.CopyTo(comments);
-
-                return comments;
             }
+
+            return list;
         }
 
 

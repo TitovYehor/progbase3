@@ -12,6 +12,7 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
         private TextField chooseNameInput;
 
         private PostRepository postsRepository;
+        private CommentRepository commentsRepository;
 
         private MenuBar mainMenu;
 
@@ -86,9 +87,10 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
             this.Add(exportBtn);
         }
 
-        public void SetRepositories(PostRepository postsRepository)
+        public void SetRepositories(PostRepository postsRepository, CommentRepository commentsRepository)
         {
             this.postsRepository = postsRepository;
+            this.commentsRepository = commentsRepository;
         }
 
         private void OnSelectDirectory()
@@ -117,7 +119,7 @@ namespace TerminalGUIApp.Windows.ExportAndImportWindows
         private void OnExport()
         {
             if (ExportAndImportData.ExportPostsWithComments(exportSearchInput.Text.ToString(),
-            directoryPathLbl.Text.ToString(), chooseNameInput.Text.ToString(), postsRepository))
+            directoryPathLbl.Text.ToString(), chooseNameInput.Text.ToString(), postsRepository, commentsRepository))
             {
                 MessageBox.Query("Export data", "Data successfuly exported", "Ok");
             }

@@ -302,7 +302,7 @@ namespace TerminalGUIApp.Windows.MainWindow
             Toplevel top = Application.Top;
 
             ExportWindow win = new ExportWindow();
-            win.SetRepositories(postsRepository);
+            win.SetRepositories(postsRepository, commentsRepository);
 
             RunWindow(win);
         }
