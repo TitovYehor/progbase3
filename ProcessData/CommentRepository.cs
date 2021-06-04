@@ -132,6 +132,55 @@ namespace ProcessData
             return searchPage;
         }
 
+        public List<Comment> GetFiltredByTimeUserComments(int userId, DateTime[] dateIntervals)
+        {
+            connection.Open();
+
+            DateTime dateLeft = dateIntervals[0];
+            DateTime dateRight = dateIntervals[1];
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM comments 
+                                    WHERE createdAt >= $leftDateLim AND createdAt <= $rightDateLim AND user_id = $id";
+            command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
+            command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
+            command.Parameters.AddWithValue("$id", userId);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Comment> comments = ReadComments(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return comments;
+        }
+
+        public List<Comment> GetCommentsByTimePeriod(DateTime[] dateInterval)
+        {
+            connection.Open();
+
+            DateTime dateLeft = dateInterval[0];
+            DateTime dateRight = dateInterval[1];
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM comments
+                                    WHERE createdAt >= $leftDateLim AND createdAt <= $rightDateLim";
+            command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
+            command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Comment> comments = ReadComments(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return comments;
+        }
+
 
         public int[] GetAllCommentsIds()
         {

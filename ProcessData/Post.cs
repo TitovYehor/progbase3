@@ -1,9 +1,11 @@
 using System;
 using System.Xml.Serialization;
 
+using System.Collections.Generic;
+
 namespace ProcessData
 {
-    public class Post
+    public class Post : IComparable<Post>
     {
         public int id;
 
@@ -51,6 +53,15 @@ namespace ProcessData
             return false;
         }
 
+        public int CompareTo(Post other)
+        {
+            if (this.createdAt == other.createdAt)
+            {
+                return 0;
+            }
+
+            return this.createdAt.CompareTo(other.createdAt);
+        }
 
         public override string ToString()
         {

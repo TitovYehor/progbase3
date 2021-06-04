@@ -143,7 +143,7 @@ namespace GenerateData
 
             if (users.Length == 0)
             {
-                throw new ArgumentException("Users not exists, so it's impossible to create posts or comments");
+                throw new ArgumentException("Users does not exists, so it's impossible to create posts or comments");
             }
         }
     

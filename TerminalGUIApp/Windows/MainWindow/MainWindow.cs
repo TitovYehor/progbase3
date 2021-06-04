@@ -303,6 +303,7 @@ namespace TerminalGUIApp.Windows.MainWindow
 
             ExportWindow win = new ExportWindow();
             win.SetRepositories(postsRepository, commentsRepository);
+            win.SetUser(currentUser);
 
             RunWindow(win);
         }

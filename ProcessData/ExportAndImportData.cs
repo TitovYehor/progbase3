@@ -2,7 +2,15 @@ using System;
 using System.IO.Compression;
 using System.Collections.Generic;
 
+using System.IO;
+//using System.IO.Compression;
+using System.Xml;
+using System.Xml.Linq;
+
 using ProcessXml;
+using ScottPlot;
+
+
 
 namespace ProcessData
 {
@@ -151,30 +159,219 @@ namespace ProcessData
         }
     
 
+        private static string GetDirPath(string fullPath)
+        {
+            string[] fullPathMass = fullPath.Split('/');
+
+            string dirPath = String.Join('/', fullPathMass, 0, fullPathMass.Length - 1);
+
+            return dirPath;
+        }
+
+
+
+        public static void ExportGraphic(string saveDirPath, string name, DateTime[] dates, int userId,
+                                         PostRepository postRepository, CommentRepository commentRepository)
+        {
+            
+            string savePath = $"{saveDirPath}/{name}";
+
+            Post[] posts = postRepository.GetFiltredByTimeUserPosts(userId, dates).ToArray();
+
+            Comment[] comments = GetCommentsFromPostsMass(posts, commentRepository).ToArray();
+
+            DateTime[] datesSpan = GenerateDateSpan(dates);
+
+            string[] datesStrings = GetDatesStrings(datesSpan);
+
+            double[] countOfPosts = GetCountOfPostsByPeriods(userId, postRepository, datesSpan);
+
+            double[] countOfComments = GetCountOfCommentsByPeriods(userId, commentRepository, datesSpan);
+
+
+            var plt = new ScottPlot.Plot(1280, 720);
+
+            plt.Title("Middle value of posts and comments");
+            plt.YLabel("Count of posts and comments");
+            plt.XLabel("Date ({month}.{year})");
+
+            int pointCount = datesSpan.Length;
+            double[] x = DataGen.Consecutive(pointCount);
+            
+            plt.PlotScatter(x, countOfPosts);
+            plt.PlotScatter(x, countOfComments);
+            plt.Ticks(dateTimeX : true);
+            plt.XTicks(datesStrings);
+
+            plt.SaveFig(savePath);
+        }
+
+        private static DateTime[] GenerateDateSpan(DateTime[] limDates)
+        {
+            List<DateTime> list = new List<DateTime>();
+
+            int countOfMonths = (int)((limDates[1] - limDates[0]).TotalDays / 30);
+
+            for (int i = 0; i < countOfMonths; i++)
+            {
+                DateTime date = new DateTime(limDates[0].Year, limDates[0].Month, limDates[0].Day);
+
+                date = date.AddMonths(i);
+
+                list.Add(date);
+            }
+
+            return list.ToArray();
+        }
+
+        private static string[] GetDatesStrings(DateTime[] dates)
+        {
+            List<string> list = new List<string>();
+
+            for (int i = 0; i < dates.Length; i++)
+            {
+                list.Add(dates[i].Month.ToString() + "." + dates[i].Year.ToString());
+            }
+
+            return list.ToArray();
+        }
+
+        private static double[] GetCountOfPostsByPeriods(int userId, PostRepository postRep, DateTime[] dates)
+        {
+            double[] count = new double[dates.Length];
+
+            for (int i = 0; i < count.Length; i++)
+            {
+                DateTime[] checkDates = new DateTime[2];
+                checkDates[0] = dates[i];
+
+                if (i == count.Length - 1)
+                {
+                    DateTime newRightDate = new DateTime(dates[i].Year, dates[i].Month, dates[i].Day);
+                    
+                    newRightDate = newRightDate.AddMonths(1);
+                    
+                    checkDates[1] = newRightDate;
+                }
+                else
+                {
+                    checkDates[1] = dates[i + 1];
+                }
+
+                count[i] = postRep.GetFiltredByTimeUserPosts(userId, checkDates).Count;
+            }
+
+            return count;
+        }
+
+        private static double[] GetCountOfCommentsByPeriods(int userId, CommentRepository commentRep, DateTime[] dates)
+        {
+            double[] count = new double[dates.Length];
+
+            for (int i = 0; i < count.Length; i++)
+            {
+                DateTime[] checkDates = new DateTime[2];
+                checkDates[0] = dates[i];
+
+                if (i == count.Length - 1)
+                {
+                    DateTime newRightDate = new DateTime(dates[i].Year, dates[i].Month, dates[i].Day);
+                    
+                    newRightDate = newRightDate.AddMonths(1);
+                    
+                    checkDates[1] = newRightDate;
+                }
+                else
+                {
+                    checkDates[1] = dates[i + 1];
+                }
+
+                count[i] = commentRep.GetFiltredByTimeUserComments(userId, checkDates).Count;
+            }
+
+            return count;
+        }
+
+
+        public static void ExportReport(string saveDirPath, string name, DateTime[] dates,
+                                        PostRepository postRepository, CommentRepository commentRepository)
+        {
+            string blankPath = "../data/generator/report.docx";
+            
+            string savePath = $"{saveDirPath}/{name}";
+
+            List<Post> posts = postRepository.GetPostsByTimePeriod(dates);
+
+            List<Comment> comments = commentRepository.GetCommentsByTimePeriod(dates);
+
+            Post maxPost = FindPostWithMaxComments(posts, commentRepository);
+
+            string tempOutPath = $"{saveDirPath}/tempDocxExtract";
+
+            ZipFile.ExtractToDirectory(blankPath, tempOutPath);
+
+            XElement root = XElement.Load($"{tempOutPath}/word/document.xml");
+            Dictionary<string, string> dict = new Dictionary<string, string>
+            {
+                {"start", dates[0].ToString()},
+                {"finish", dates[1].ToString()},
+                {"post", "17"},
+                {"comment", "10"},
+                {"postMost", "xueta blyadskaya"}
+            };
+            FindAndReplace(root, dict);
+            root.Save($"{tempOutPath}/word/document.xml");
+            //File.Delete(@"../data/output/word/media/image1.jpeg");
+            //GraphCreator.CreateGraph(d, reportData.user_id, postRepository, commentRepository);
+            ZipFile.CreateFromDirectory($"{saveDirPath}/tempDocxExtract", $"{saveDirPath}/{name}");
+            Directory.Delete(tempOutPath, true);
+        }
+
+        private static void FindAndReplace(XElement node, Dictionary<string, string> dict)
+        {
+            if (node.FirstNode != null
+                && node.FirstNode.NodeType == XmlNodeType.Text)
+            {
+                string replacement;
+                if (dict.TryGetValue(node.Value, out replacement))
+                {
+                    node.Value = replacement;
+                }
+            }
+            foreach (XElement el in node.Elements())
+            {
+                FindAndReplace(el, dict);
+            }
+        }
+
+
+
+        public static Post FindPostWithMaxComments(List<Post> posts, CommentRepository commentRepository)
+        {
+            Post post = null;
+
+            int maxCommentCount = 0;
+
+            for (int i = 0; i < posts.Count; i++)
+            {
+                List<Comment> commentsOfPost = commentRepository.GetByPostId(posts[i].id);
+
+                if (commentsOfPost.Count > maxCommentCount)
+                {
+                    maxCommentCount = commentsOfPost.Count;
+
+                    post = posts[i];
+                    post.comments = commentsOfPost.ToArray();
+                }
+            }
+
+            return post;
+        }
+
+
+
         private static List<Comment> GetCommentsFromPostsMass(Post[] posts, CommentRepository commentRepository)
         {
-            // List<Comment> list = new List<Comment>();
-
-            // if (posts.Length == 0)
-            // {
-            //     return null;
-            // }
-            // else
-            // {
-            //     for (int i = 0; i < posts.Length; i++)
-            //     {
-            //         for (int j = 0; j < posts[i].comments.Length; j++)
-            //         {
-            //             list.Add(posts[i].comments[j]);
-            //         }
-            //     }
-
-            //     Comment[] comments = new Comment[list.Count];
-            //     list.CopyTo(comments);
-
-            //     return comments;
-            // }
-
             List<Comment> list = new List<Comment>();
 
             for (int i = 0; i < posts.Length; i++)
@@ -191,16 +388,6 @@ namespace ProcessData
             }
 
             return list;
-        }
-
-
-        private static string GetDirPath(string fullPath)
-        {
-            string[] fullPathMass = fullPath.Split('/');
-
-            string dirPath = String.Join('/', fullPathMass, 0, fullPathMass.Length - 1);
-
-            return dirPath;
         }
     }
 }

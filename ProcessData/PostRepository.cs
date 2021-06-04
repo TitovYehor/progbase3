@@ -370,23 +370,74 @@ namespace ProcessData
             return posts;
         }
 
-        public Post[] GetFiltredByTimePosts(DateTime[] dateIntervals)
+        public List<Post> GetFiltredByTimeUserPosts(int userId, DateTime[] dateInterval)
         {
             connection.Open();
 
-            DateTime dateLeft = dateIntervals[0];
-            DateTime dateRight = dateIntervals[1];
+            DateTime dateLeft = dateInterval[0];
+            DateTime dateRight = dateInterval[1];
 
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM posts, comments 
-                                    WHERE posts.id = comments.post_id 
-                                    AND posts.createdAt > $leftDateLim AND posts.createdAt < rightDateLim";
+            command.CommandText = @"SELECT * FROM posts 
+                                    WHERE createdAt >= $leftDateLim AND createdAt <= $rightDateLim AND user_id = $id";
+            command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
+            command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
+            command.Parameters.AddWithValue("$id", userId);
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Post> posts = ReadPosts(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return posts;
+        }
+
+
+        public List<Post> GetPostsAndCommentsByTimePeriod(DateTime[] dateInterval)
+        {
+            connection.Open();
+
+            DateTime dateLeft = dateInterval[0];
+            DateTime dateRight = dateInterval[1];
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM posts, comments
+                                    WHERE posts.createdAt >= $leftDateLim AND posts.createdAt <= $rightDateLim 
+                                    AND posts.id = comments.post_id";
             command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
             command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
 
             SqliteDataReader reader = command.ExecuteReader();
 
-            Post[] posts = ReadPostsFromCrossJoin(reader);
+            List<Post> posts = ReadPosts(reader);
+
+            reader.Close();
+
+            connection.Close();
+
+            return posts;
+        }
+
+
+        public List<Post> GetPostsByTimePeriod(DateTime[] dateInterval)
+        {
+            connection.Open();
+
+            DateTime dateLeft = dateInterval[0];
+            DateTime dateRight = dateInterval[1];
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM posts
+                                    WHERE createdAt >= $leftDateLim AND createdAt <= $rightDateLim";
+            command.Parameters.AddWithValue("$leftDateLim", dateLeft.ToString("o"));
+            command.Parameters.AddWithValue("$rightDateLim", dateRight.ToString("o"));
+
+            SqliteDataReader reader = command.ExecuteReader();
+
+            List<Post> posts = ReadPosts(reader);
 
             reader.Close();
 
